@@ -2,7 +2,12 @@ c1 = Patience(1)
 c2 = NotANumber()
 c3 = TimeLimit(t=100)
 
+@test Disjunction(c1) == c1
+
 d = c1 + c2 + Never() + c3 + c1
+show(d)
+
+sum(Disjunction[]) == Never()
 
 @testset "_criteria" begin
     criteria = EarlyStopping._criteria(d)
