@@ -1,9 +1,10 @@
 module EarlyStopping
 
 using Dates
+using Statistics
 
 export StoppingCriterion,
-    Never, NotANumber, TimeLimit, GL, Patience, UP, stopping_time
+    Never, NotANumber, TimeLimit, GL, Patience, UP, PQ, stopping_time
 
 include("api.jl")
 include("criteria.jl")
