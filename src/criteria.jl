@@ -283,7 +283,7 @@ mutable struct Patience <: StoppingCriterion
         return new(n)
     end
 end
-Patience(; n=1) = Patience(n)
+Patience(; n=5) = Patience(n)
 
 # Prechelt alias:
 const UP = Patience
