@@ -19,7 +19,7 @@ For a list of possible criterion, do
 
 ### Training losses
 
-For criterion tracking both an "out-of-sample" loss and a "training"
+For criteria tracking both an "out-of-sample" loss and a "training"
 loss (eg, stopping criterion of type `PQ`), specify `training=true` if
 the update is for training, as in
 
