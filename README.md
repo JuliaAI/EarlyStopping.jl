@@ -5,8 +5,8 @@
 | [![Build status](https://github.com/ablaom/EarlyStopping.jl.jl/workflows/CI/badge.svg)](https://github.com/ablaom/EarlyStopping.jl.jl/actions)| [![codecov.io](http://codecov.io/github/ablaom/EarlyStopping.jl.jl/coverage.svg?branch=master)](http://codecov.io/github/ablaom/EarlyStopping.jl.jl?branch=master) |
 
 A small package for applying early stopping criteria to
-loss-generating iterative algorithms, with applications to machine
-learning training and optimization.
+loss-generating iterative algorithms, with a view to applications to
+training and optimization of machine learning models.
 
 Includes the stopping criterion surveyed in [Prechelt, Lutz
 (1998)](https://link.springer.com/chapter/10.1007%2F3-540-49430-8_3):
