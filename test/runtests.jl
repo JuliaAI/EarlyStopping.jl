@@ -8,3 +8,6 @@ end
     include("disjunction.jl")
 end
 
+@testset "object_oriented_api.jl" begin
+    include("object_oriented_api.jl")
+end

@@ -6,11 +6,13 @@ import Base.+
 
 export StoppingCriterion,
     Never, NotANumber, TimeLimit, GL, Patience, UP, PQ,
-    Disjunction, criteria, stopping_time
+    Disjunction, criteria, stopping_time, EarlyStopper,
+    done!, message
 
 include("api.jl")
 include("criteria.jl")
 include("disjunction.jl")
 include("stopping_time.jl")
+include("object_oriented_api.jl")
 
 end # module

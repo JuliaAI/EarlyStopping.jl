@@ -1,16 +1,15 @@
 """
     Disjunction(criteria...)
 
-$$STOPPING_DOC
+$STOPPING_DOC
 
 Combines the specified stopping `criteria` dijunctively: if any one of
 the criteria applies, then stop.
 
-**Syntactic sugar.** Note that `c1 + c2 + ...` is equivalent to
+**Syntactic sugar.** `c1 + c2 + ...` is equivalent to
   `Disjunction(c1, c2, ...)`.
 
 """
-
 struct Disjunction{A,B} <: StoppingCriterion
     a::A
     b::B

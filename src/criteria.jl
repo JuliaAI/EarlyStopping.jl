@@ -97,13 +97,13 @@ generalization_loss(E, E_opt) =  100*(E/abs(E_opt) - one(E_opt))
 
 $STOPPING_DOC
 
-A stop is triggered when the generalization loss exceeds the threshold
-`alpha`.
+A stop is triggered when the (rescaled) generalization loss exceeds
+the threshold `alpha`.
 
-Suppose ``E_1, E_2, ..., E_t`` are a sequence of losses, for example,
-out-of-sample estimates of the loss associated with some iterative
-machine learing algorithm. Then the *generalization loss* at time `t`,
-is given by
+**Terminology.** Suppose ``E_1, E_2, ..., E_t`` are a sequence of
+losses, for example, out-of-sample estimates of the loss associated
+with some iterative machine learing algorithm. Then the
+*generalization loss* at time `t`, is given by
 
 `` GL_t = 100 (E_t - E_opt) \\over |E_opt|``
 
@@ -270,8 +270,7 @@ end
 
 $STOPPING_DOC
 
-A stop is triggered by `n` consecutive deteriorations in the out-of-sample
-performance.
+A stop is triggered by `n` consecutive increases in the loss.
 
 Denoted "_UP_s" in $PRECHELT_REF.
 
