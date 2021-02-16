@@ -4,3 +4,7 @@ using EarlyStopping, Dates, Test
     include("criteria.jl")
 end
 
+@testset "disjunction.jl" begin
+    include("disjunction.jl")
+end
+

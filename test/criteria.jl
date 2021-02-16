@@ -95,7 +95,7 @@ end
 
     state = EarlyStopping.update_training(c, 10.0, state)
     # can't be done if last update was a training update:
-    @test_throws Exception EarlyStopping.done(c, state)
+    @test !EarlyStopping.done(c, state)
 
     #                 k=2                progress GL    PQ    t
     losses2 = [9.5, 9.3, 10,            # 10.8     0     0     1

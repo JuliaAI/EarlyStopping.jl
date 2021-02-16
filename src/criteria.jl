@@ -1,21 +1,3 @@
-# Includes stopping criterion surveyed in Prechelt, Lutz (1998):
-# "Early Stopping - But When?", in "Neural Networks: Tricks of the
-# Trade", ed. G. Orr, Springer.
-
-# https://link.springer.com/chapter/10.1007%2F3-540-49430-8_3
-
-# criterion                     | notation in Prechelt
-# ------------------------------|--------------------------------
-# `Never`                       | -
-# `NotANumber`                  | -
-# `TimeLimit`                   | -
-# `GL`                          | ``GL_α``
-# `PQ`                          | ``PQ_α``
-# `Patience`                    | ``UP_s``
-
-# "loss" can have any type for which `<` is defined; it is allowed to
-# be negative (eg, Brier loss is sometimes defined that way).
-
 const PRECHELT_REF = "[Prechelt, Lutz (1998): \"Early Stopping"*
     "- But When?\", in *Neural Networks: Tricks of the Trade*, "*
     "ed. G. Orr, Springer.](https://link.springer.com/chapter"*
@@ -50,7 +32,7 @@ $STOPPING_DOC
 Stop if a loss of `NaN` is encountered.
 
 """
-struct NotANumber end
+struct NotANumber <: StoppingCriterion end
 
 # state = `true` when NaN has been encountered
 
@@ -270,9 +252,7 @@ function update(::PQ, loss, state)
 end
 
 function done(criterion::PQ, state)
-    state.waiting_for_out_of_sample &&
-        error("Waiting for an out-of-sample loss before applying the GL early "*
-              "stopping criterion. Last reported loss was a training loss. ")
+    state.waiting_for_out_of_sample && return false
     GL = generalization_loss(state.loss, state.min_loss)
     P = progress(state.training_losses)
     P > criterion.tol || return true
@@ -309,7 +289,7 @@ Patience(; n=1) = Patience(n)
 # Prechelt alias:
 const UP = Patience
 
-update(criterion::Patience, loss) = (loss=loss, num_drops=0)
+update(criterion::Patience, loss) = (loss=loss, n_increases=0)
 @inline function update(criterion::Patience, loss, state)
     old_loss, n = state
     if loss > old_loss
@@ -317,7 +297,7 @@ update(criterion::Patience, loss) = (loss=loss, num_drops=0)
     else
         n = 0
     end
-    return (loss=loss, num_drops=n)
+    return (loss=loss, n_increases=n)
 end
 
-done(criterion::Patience, state) = state.num_drops' == criterion.n
+done(criterion::Patience, state) = state.n_increases == criterion.n
