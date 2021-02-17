@@ -255,6 +255,8 @@ function done(criterion::PQ, state)
     return  PQ > criterion.alpha
 end
 
+needs_in_and_out_of_sample(::Type{<:PQ}) = true
+
 
 ## PATIENCE
 

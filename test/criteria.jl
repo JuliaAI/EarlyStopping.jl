@@ -55,6 +55,8 @@ Base.iterate(iter::SleepyIterator, state) =
 end
 
 @testset "GL" begin
+    @test !EarlyStopping.needs_in_and_out_of_sample(GL())
+
     # constructor:
     @test_throws ArgumentError GL(alpha=0)
     @test GL(alpha=1).alpha === 1.0
@@ -86,6 +88,7 @@ end
     @test_throws ArgumentError PQ(k=1)
 
     c = PQ(alpha=10, k=2)
+    @test EarlyStopping.needs_in_and_out_of_sample(c)
 
     # first update must be training:
     @test_throws Exception EarlyStopping.update(c, 1.0)

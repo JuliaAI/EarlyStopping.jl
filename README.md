@@ -129,7 +129,10 @@ To implement a new stopping criterion, one must:
 
 - Overload methods `update` and `done` for the new type.
 
-- Optionally overload methods `message` and `update_training`.
+- Optionally overload methods `message`.
+
+- Optionally overload `update_training` and the trait
+  `needs_in_and_out_of_sample`.
 
 We demonstrate this with a simplified version of the
 [code](/src/criteria.jl) for `Patience`:
@@ -189,5 +192,14 @@ message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
 
 The optional `update_training` methods (two for each criterion) have
 the same signature as the `update` methods above. Refer to the `PQ`
-[code](/src/criteria.jl) for an example.
+[code](/src/criteria.jl) for an example. 
+
+If a stopping criterion requires one or more `update_training` calls
+per `update` call to work, you should overload the trait
+`needs_in_and_out_of_sample` for that type, as in this example from
+the source code:
+
+```julia
+needs_in_and_out_of_sample(::Type{<:PQ}) = true
+```
 
