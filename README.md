@@ -89,7 +89,7 @@ done!(stopper, 9.0) # true
 ## Stopping time
 
 To determine the stopping time for a iterator `losses`, use
-`stopping_time(criterion, losses)`. This is useful for testing new
+`stopping_time(criterion, losses)`. This is useful for debugging new
 criteria (see below). If the iterator terminates without a stop, `0`
 is returned.
 
