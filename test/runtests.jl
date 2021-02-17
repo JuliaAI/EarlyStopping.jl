@@ -11,3 +11,8 @@ end
 @testset "object_oriented_api.jl" begin
     include("object_oriented_api.jl")
 end
+
+# to complete code coverage:
+@testset "api.jl" begin
+    include("api.jl")
+end
