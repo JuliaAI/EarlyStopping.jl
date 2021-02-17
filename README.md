@@ -119,8 +119,8 @@ done!(stopper, 9.0) # true
 ```
 
 **Important.** If there is no distinction between in and out-of-sample
-losses, then any criterion can be applied, *and in that case `training=true`
-is never specified* (regardless of the actual interpretation of the
+losses, then any criterion can be applied, *and in that case* `training=true`
+*is never specified* (regardless of the actual interpretation of the
 losses being tracked).
 
 
