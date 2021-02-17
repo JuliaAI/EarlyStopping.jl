@@ -97,7 +97,15 @@ is returned.
 julia> stopping_time(NotANumber(), [10.0, 3.0, NaN, 4.0])
 3
 
-julia> stopping_time(NotANumber(), [10.0, 3.0, 5.0, 4.0])
+julia> stopping_time(Patience(3), [10.0, 3.0, 4.0, 5.0], verbosity=1)
+[ Info: loss updates: 1
+[ Info: state: (loss = 10.0, n_increases = 0)
+[ Info: loss updates: 2
+[ Info: state: (loss = 3.0, n_increases = 0)
+[ Info: loss updates: 3
+[ Info: state: (loss = 4.0, n_increases = 1)
+[ Info: loss updates: 4
+[ Info: state: (loss = 5.0, n_increases = 2)
 0
 ```
 

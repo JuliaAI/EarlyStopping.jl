@@ -4,8 +4,8 @@ _getindex(is_training::Nothing, s) = false
 _getindex(is_training, s) = is_training[s]
 
 """
-    stopping_time(criterion, losses)
-    stopping_time(criterion, losses, is_training)
+    stopping_time(criterion, losses; verbosity=0)
+    stopping_time(criterion, losses, is_training; verbosity=0)
 
 Determine the stopping time for the iterator `losses`, given
 `stopping::StoppingCriterion`. Include the `Bool` vector `is_training`
@@ -28,7 +28,8 @@ function stopping_time(criterion, losses, training; verbosity=0)
     t = 0 # counts regular `update` calls but ignores `update_training` calls
     s = 0 # counter for iteration over `losses`
 
-    is_training = collect(training)
+    is_training = training === nothing ?
+        nothing : collect(training)
     global state
 
     for loss in losses
