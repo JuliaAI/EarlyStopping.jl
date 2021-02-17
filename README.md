@@ -147,8 +147,7 @@ method for `StoppingCriterion`. Here is the fallback (which does not
 use `state`):
 
 ```julia
-import EarlyStopping.message
-message(criteria::Patience, state)  = "Early stop triggered by "*
+message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
     "$criterion stopping criterion. "
 ```
 
