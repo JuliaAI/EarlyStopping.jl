@@ -151,6 +151,6 @@ message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
     "$criterion stopping criterion. "
 ```
 
-The optional `update_training` method has the same signature as the
-`update` methods above. Refer to the `PQ` [code](/src/criteria) for an
-example.
+The optional `update_training` methods (two for each criterion) have
+the same signature as the `update` methods above. Refer to the `PQ`
+[code](/src/criteria) for an example.
