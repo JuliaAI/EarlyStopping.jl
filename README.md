@@ -31,7 +31,7 @@ done!(stopper, 0.234) # false
 done!(stopper, 0.345) # true
 
 julia> message(stopper)
-"Early stop triggered by Patience(1) stopping criterion. "
+"Early stop triggered by Patience(2) stopping criterion. "
 ```
 
 The "object-oriented" interface demonstrated here is not optimized but
