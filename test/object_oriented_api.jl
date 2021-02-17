@@ -29,5 +29,12 @@ stopper = EarlyStopper(PQ(alpha=3.8, k=2), NotANumber())
 @test done!(stopper, losses2[16])
 
 message(stopper) == "Early stop triggered by "*
-    "PQ(3.8, 2, 2.220446049250313e-16) stopping criterion. "
+    "PQ(3.8, 2, 2.220446049250313e-16) stopping criterio
+n. "
+
+# verbose case:
+stopper = EarlyStopper(NotANumber(), verbosity=1)
+
+@test_logs (:info, r"training loss: 1.0") done!(stopper, 1.0, training=true)
+@test_logs (:info, r"loss: 2.0")  done!(stopper, 2.0)
 

@@ -1,6 +1,6 @@
 """
 
-    EarlyStopper(c...)
+    EarlyStopper(c...; verbosity=0)
 
 Instantiate an object for tracking whether one or more stopping
 criterion `c` apply, given a sequence of losses.
@@ -32,10 +32,12 @@ the out-of-sample update.
 """
 mutable struct EarlyStopper{S}
     criterion::S
+    verbosity::Int
     state
-    EarlyStopper(criterion::S) where S = new{S}(criterion)
+    EarlyStopper(criterion::S; verbosity=0) where S =
+        new{S}(criterion, verbosity)
 end
-EarlyStopper(criteria...) = EarlyStopper(sum(criteria))
+EarlyStopper(criteria...; kwargs...) = EarlyStopper(sum(criteria); kwargs...)
 
 for f in [:message, :done]
     eval(quote
@@ -62,9 +64,16 @@ end
 """
     done!(stopper::EarlyStopper)
 """
-done!(stopper::EarlyStopper, loss; training=false) =
-    if training
+function done!(stopper::EarlyStopper, loss; training=false)
+    ret = if training
         done_after_update_training!(stopper, loss)
     else
         done_after_update!(stopper, loss)
     end
+    if stopper.verbosity > 0
+        suffix = training ? "training " : ""
+        loss_str = suffix*"loss"
+        @info "$loss_str: $loss\t state: $(stopper.state)"
+    end
+    return ret
+end
