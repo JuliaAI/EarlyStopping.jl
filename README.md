@@ -86,6 +86,11 @@ done!(stopper, 8.4, training=true) # false
 done!(stopper, 9.0) # true
 ```
 
+To be clear, if there is no distinction between in and out-of-sample
+losses, any criterion can be applied, and in that case `training=true`
+is never specified (regardless of the actual interpretation of the
+losses being tracked).
+
 ## Stopping time
 
 To determine the stopping time for an iterator `losses`, use
