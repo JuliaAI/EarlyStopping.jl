@@ -8,7 +8,7 @@ A small package for applying early stopping criteria to
 loss-generating iterative algorithms, with a view to applications to
 training and optimization of machine learning models.
 
-Includes the stopping criterion surveyed in [Prechelt, Lutz
+Includes the stopping criteria surveyed in [Prechelt, Lutz
 (1998)](https://link.springer.com/chapter/10.1007%2F3-540-49430-8_3):
 "Early Stopping - But When?", in *Neural Networks: Tricks of the
 Trade*, ed. G. Orr, Springer.
