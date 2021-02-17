@@ -72,6 +72,8 @@ the out-of-sample update, as in the following example:
 
 ```julia
 stopper = EarlyStopper(PQ(alpha=2.0, k=2))
+needs_in_and_out_of_sample(stopper) # true
+
 done!(stopper, 9.5, training=true) # false
 done!(stopper, 9.3, training=true) # false
 done!(stopper, 10.0) # false
