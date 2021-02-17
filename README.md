@@ -145,7 +145,8 @@ All information to be "remembered" must passed around in an object
 called `state` below, which is the return value of `update` (and
 `update_training`). The `update` function has two methods - one for
 initialization, without a `state` argument, and one for all subsequent
-loss updates, which does:
+loss updates, which requires the `state` returned by the preceding
+`update` (or `update_training`) call:
 
 ```julia
 update(criterion::Patience, loss) = (loss=loss, n_increases=0) # state
