@@ -181,5 +181,5 @@ message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
 
 The optional `update_training` methods (two for each criterion) have
 the same signature as the `update` methods above. Refer to the `PQ`
-[code](/src/criteria) for an example.
+[code](/src/criteria.jl) for an example.
 
