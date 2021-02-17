@@ -47,6 +47,8 @@ Base.iterate(iter::SleepyIterator, state) =
     @test TimeLimit(t=Day(2)).t == Millisecond(48*3_600_000)
     sleepy_losses = SleepyIterator(losses; t=0.1)
     @test stopping_time(TimeLimit(t=Millisecond(600)), sleepy_losses) == 7
+    # codecov:
+    @test EarlyStopping.update_training(TimeLimit(), 42.0) <= now()
 end
 
 @testset "GL" begin
