@@ -88,7 +88,7 @@ criterion             | description                                      | notat
 `Disjunction(c...)`   | Stop when any of the criteria `c` apply          | 
 
 
-## Training losses
+## Criteria tracking both training and out-of-sample losses
 
 For criteria tracking both an "out-of-sample" loss and a "training"
 loss (eg, stopping criterion of type `PQ`), specify `training=true` if
@@ -118,9 +118,9 @@ done!(stopper, 8.4, training=true) # false
 done!(stopper, 9.0) # true
 ```
 
-To be clear, if there is no distinction between in and out-of-sample
-losses, any criterion can be applied, and in that case `training=true`
-is never specified (regardless of the actual interpretation of the
+**Important.** If there is no distinction between in and out-of-sample
+losses, then any criterion can be applied, *and in that case `training=true`
+is never specified* (regardless of the actual interpretation of the
 losses being tracked).
 
 
