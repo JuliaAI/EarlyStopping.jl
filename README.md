@@ -25,9 +25,10 @@ Pkg.add("EarlyStopping")
 ```julia
 using EarlyStopping
 
-stopper = EarlyStopper(Patience(1), NotANumber())
+stopper = EarlyStopper(Patience(2), NotANumber()) # muliple criteria
 done!(stopper, 0.123) # false
-done!(stopper, 0.234) # true
+done!(stopper, 0.234) # false
+done!(stopper, 0.345) # true
 
 julia> message(stopper)
 "Early stop triggered by Patience(1) stopping criterion. "
