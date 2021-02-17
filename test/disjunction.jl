@@ -7,6 +7,9 @@ c3 = TimeLimit(t=100)
 d = c1 + c2 + Never() + c3 + c1
 show(d)
 
+# codecov:
+@test zero(typeof(c1)) == Never()
+
 @test sum(Disjunction[]) == Never()
 @test Never() in c1
 

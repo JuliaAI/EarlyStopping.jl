@@ -212,11 +212,6 @@ struct PQState{T}
     loss::Union{Nothing,T}
     min_loss::Union{Nothing,T}
 end
-_as_tuple(state::PQState) = (training_losses=state.training_losses,
-                             waiting_for_out_of_sample=
-                             state.waiting_for_out_of_sample,
-                             loss=state.loss,
-                             min_loss=state.min_loss)
 
 function update_training(criterion::PQ, loss)
     training_losses = [loss, ]

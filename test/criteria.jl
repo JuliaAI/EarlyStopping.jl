@@ -1,5 +1,8 @@
 losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
 
+# codecov:
+@test EarlyStopping._min(nothing, 5) == 5
+
 @testset "Never" begin
     @test stopping_time(Never(), losses) == 0
 end
