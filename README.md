@@ -86,6 +86,32 @@ done!(stopper, 8.4, training=true) # false
 done!(stopper, 9.0) # true
 ```
 
+## Stopping time
+
+To determine the stopping time for a iterator `losses` of losses, use
+`stopping_time(criterion, losses)`. This is useful for testing new
+criteria (see below). If the iterator terminates without a stop, `0`
+is returned.
+
+```julia
+julia> stopping_time(NotANumber(), [10.0, 3.0, NaN, 4.0])
+3
+
+julia> stopping_time(NotANumber(), [10.0, 3.0, 5.0, 4.0])
+0
+```
+
+If the lossses include training losses as described in [Training
+losses](#training-losses) above, pass an extra `Bool` vector
+`is_training`, as in
+
+```julia
+stopping_time(PQ(), 
+              [0.123, 0.321, 0.52, 0.55, 0.56, 0.58],
+              [true, true, false, true, true, false])
+```
+
+
 ## Implementing new criteria
 
 To implement a new stopping criterion, one must: 
@@ -155,3 +181,4 @@ message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
 The optional `update_training` methods (two for each criterion) have
 the same signature as the `update` methods above. Refer to the `PQ`
 [code](/src/criteria) for an example.
+
