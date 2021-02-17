@@ -147,9 +147,9 @@ julia> stopping_time(Patience(3), [10.0, 3.0, 4.0, 5.0], verbosity=1)
 0
 ```
 
-If the lossses include training losses as described in [Training
-losses](#training-losses) above, pass an extra `Bool` vector
-marking the training losses with `true`, as in
+If the lossses include both training and out-of-sample losses as
+described above, pass an extra `Bool` vector marking the training
+losses with `true`, as in
 
 ```julia
 stopping_time(PQ(), 
