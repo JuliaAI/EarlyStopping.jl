@@ -79,13 +79,13 @@ REPL. Here is a short summary:
 
 criterion             | description                                      | notation in Prechelt
 ----------------------|--------------------------------------------------|---------------------
-`Never()`             | Never stop                                       | 
-`NotANumber()`        | Stop when `NaN` encountered                       | 
-`TimeLimit(t=0.5)`    | Stop after `t` hours                          | 
+`Never()`             | Never stop                                       |
+`NotANumber()`        | Stop when `NaN` encountered                       |
+`TimeLimit(t=0.5)`    | Stop after `t` hours                          |
 `GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha` | ``GL_α``
 `PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha` | ``PQ_α``
 `Patience(n=5)`       | Stop after `n` consecutive loss increases        | ``UP_s``
-`Disjunction(c...)`   | Stop when any of the criteria `c` apply          | 
+`Disjunction(c...)`   | Stop when any of the criteria `c` apply          |
 
 
 ## Criteria tracking both training and out-of-sample losses
@@ -154,14 +154,14 @@ described above, pass an extra `Bool` vector marking the training
 losses with `true`, as in
 
 ```julia
-stopping_time(PQ(), 
+stopping_time(PQ(),
               [0.123, 0.321, 0.52, 0.55, 0.56, 0.58],
               [true, true, false, true, true, false])
 ```
 
 ## Implementing new criteria
 
-To implement a new stopping criterion, one must: 
+To implement a new stopping criterion, one must:
 
 - Define a new `struct` for the criterion, which must subtype
 `StoppingCriterion`.
@@ -226,13 +226,13 @@ method for `StoppingCriterion`. Here is the fallback (which does not
 use `state`):
 
 ```julia
-message(criteria::StoppingCriterion, state)  = "Early stop triggered by "*
-    "$criterion stopping criterion. "
+EarlyStopping.message(criteria::StoppingCriterion, state)
+    = "Early stop triggered by $criterion stopping criterion. "
 ```
 
 The optional `update_training` methods (two for each criterion) have
 the same signature as the `update` methods above. Refer to the `PQ`
-[code](/src/criteria.jl) for an example. 
+[code](/src/criteria.jl) for an example.
 
 If a stopping criterion requires one or more `update_training` calls
 per `update` call to work, you should overload the trait
@@ -240,6 +240,5 @@ per `update` call to work, you should overload the trait
 the source code:
 
 ```julia
-needs_in_and_out_of_sample(::Type{<:PQ}) = true
+EarlyStopping.needs_in_and_out_of_sample(::Type{<:PQ}) = true
 ```
-
