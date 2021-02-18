@@ -198,7 +198,7 @@ loss updates, which requires the `state` returned by the preceding
 `update` (or `update_training`) call:
 
 ```julia
-import EarlyStopping: update, done, message
+import EarlyStopping: update, done
 
 update(criterion::Patience, loss) = (loss=loss, n_increases=0) # state
 
