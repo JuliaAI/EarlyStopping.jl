@@ -181,7 +181,6 @@ We demonstrate this with a simplified version of the
 
 ```julia
 using EarlyStopping
-import EarlyStopping: update, done, message
 
 mutable struct Patience <: StoppingCriterion
     n::Int
@@ -199,6 +198,8 @@ loss updates, which requires the `state` returned by the preceding
 `update` (or `update_training`) call:
 
 ```julia
+import EarlyStopping: update, done, message
+
 update(criterion::Patience, loss) = (loss=loss, n_increases=0) # state
 
 function update(criterion::Patience, loss, state)
