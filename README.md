@@ -101,8 +101,10 @@ corresponding training update. Multiple training updates may precede
 the out-of-sample update, as in the following example:
 
 ```julia
-stopper = EarlyStopper(PQ(alpha=2.0, k=2))
-needs_in_and_out_of_sample(stopper) # true
+criterion = PQ(alpha=2.0, k=2)
+needs_in_and_out_of_sample(criterion) # true
+
+stopper = EarlyStopper(criterion)
 
 done!(stopper, 9.5, training=true) # false
 done!(stopper, 9.3, training=true) # false
