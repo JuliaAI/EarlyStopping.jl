@@ -102,7 +102,7 @@ the threshold `alpha`.
 
 **Terminology.** Suppose ``E_1, E_2, ..., E_t`` are a sequence of
 losses, for example, out-of-sample estimates of the loss associated
-with some iterative machine learing algorithm. Then the
+with some iterative machine learning algorithm. Then the
 *generalization loss* at time `t`, is given by
 
 `` GL_t = 100 (E_t - E_opt) \\over |E_opt|``
