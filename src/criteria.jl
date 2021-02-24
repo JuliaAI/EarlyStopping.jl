@@ -297,3 +297,34 @@ update(criterion::Patience, loss) = (loss=loss, n_increases=0)
 end
 
 done(criterion::Patience, state) = state.n_increases == criterion.n
+
+## PATIENCE
+
+# This is UP_s in Prechelt 1998
+
+"""
+    MaximumChecks(n::Int)
+
+$STOPPING_DOC
+
+A stop is triggered by `n` consecutive checking of done.
+
+"""
+mutable struct MaximumChecks <: StoppingCriterion
+    n::Int
+    function MaximumChecks(n::Int)
+        n > 0 ||
+            throw(ArgumentError("The maxchecking level `n` must be positive. "))
+        return new(n)
+    end
+end
+MaximumChecks(; n) = MaximumChecks(n)
+
+update(criterion::MaximumChecks, loss) = (loss=loss, n_increases=0)
+@inline function update(criterion::MaximumChecks, loss, state)
+    _, n = state
+    n += 1
+    return (loss=loss, n_increases=n)
+end
+
+done(criterion::MaximumChecks, state) = state.n_increases == criterion.n

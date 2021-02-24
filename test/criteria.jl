@@ -34,6 +34,7 @@ end
                              verbosity=1))
 end
 
+
 struct SleepyIterator{T}
     iter::T
     t::Float64
@@ -148,6 +149,14 @@ end
     @test stopping_time(Patience(n=3), losses) == 5
     @test stopping_time(Patience(n=2), losses) == 4
     @test stopping_time(Patience(n=1), losses) == 3
+end
+
+@testset "MaximumChecks" begin
+    @test_throws ArgumentError MaximumChecks(n=0)
+
+    for i in 1:6
+        @test stopping_time(MaximumChecks(i), losses) == i+1
+    end
 end
 
 true
