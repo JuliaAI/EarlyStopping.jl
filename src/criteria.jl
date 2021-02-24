@@ -298,10 +298,6 @@ end
 
 done(criterion::Patience, state) = state.n_increases == criterion.n
 
-## PATIENCE
-
-# This is UP_s in Prechelt 1998
-
 """
     MaximumChecks(n::Int)
 
