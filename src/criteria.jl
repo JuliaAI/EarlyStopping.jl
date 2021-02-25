@@ -306,19 +306,19 @@ $STOPPING_DOC
 A stop is triggered by `n` consecutive checking of done.
 
 """
-mutable struct MaximumChecks <: StoppingCriterion
+mutable struct NumberLimit <: StoppingCriterion
     n::Int
-    function MaximumChecks(n::Int)
+    function NumberLimit(n::Int)
         n > 0 ||
             throw(ArgumentError("The maxchecking level `n` must be positive. "))
         return new(n)
     end
 end
-MaximumChecks(; n) = MaximumChecks(n)
+NumberLimit(; n) = NumberLimit(n)
 
-update(criterion::MaximumChecks, loss) = 1
-@inline function update(criterion::MaximumChecks, loss, state)
+update(criterion::NumberLimit, loss) = 1
+@inline function update(criterion::NumberLimit, loss, state)
     return state+1
 end
 
-done(criterion::MaximumChecks, state) = state == criterion.n
+done(criterion::NumberLimit, state) = state == criterion.n

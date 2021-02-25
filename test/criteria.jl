@@ -151,11 +151,11 @@ end
     @test stopping_time(Patience(n=1), losses) == 3
 end
 
-@testset "MaximumChecks" begin
-    @test_throws ArgumentError MaximumChecks(n=0)
+@testset "NumberLimit" begin
+    @test_throws ArgumentError NumberLimit(n=0)
 
     for i in 1:length(losses)
-        @test stopping_time(MaximumChecks(i), losses) == i
+        @test stopping_time(NumberLimit(i), losses) == i
     end
 end
 
