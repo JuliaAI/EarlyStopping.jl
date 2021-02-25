@@ -316,8 +316,8 @@ mutable struct MaximumChecks <: StoppingCriterion
 end
 MaximumChecks(; n) = MaximumChecks(n)
 
-update(criterion::MaximumChecks, loss) = 0
-update_training(criterion::MaximumChecks, loss) = 0
+update(criterion::MaximumChecks, loss) = 1
+update_training(criterion::MaximumChecks, loss) = 1
 @inline function update(criterion::MaximumChecks, loss, state)
     return state+1
 end

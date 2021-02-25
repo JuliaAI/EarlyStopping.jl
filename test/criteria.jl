@@ -154,8 +154,8 @@ end
 @testset "MaximumChecks" begin
     @test_throws ArgumentError MaximumChecks(n=0)
 
-    for i in 1:6
-        @test stopping_time(MaximumChecks(i), losses) == i+1
+    for i in 1:length(losses)
+        @test stopping_time(MaximumChecks(i), losses) == i
     end
 end
 
