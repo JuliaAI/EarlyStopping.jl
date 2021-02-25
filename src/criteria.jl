@@ -316,11 +316,10 @@ mutable struct MaximumChecks <: StoppingCriterion
 end
 MaximumChecks(; n) = MaximumChecks(n)
 
-update(criterion::MaximumChecks, loss) = (loss=loss, n_checks=0)
+update(criterion::MaximumChecks, loss) = 0
+update_training(criterion::MaximumChecks, loss) = 0
 @inline function update(criterion::MaximumChecks, loss, state)
-    _, n = state
-    n += 1
-    return (loss=loss, n_checks=n)
+    return state+1
 end
 
-done(criterion::MaximumChecks, state) = state.n_checks == criterion.n
+done(criterion::MaximumChecks, state) = state == criterion.n
