@@ -77,16 +77,16 @@ subtype `T` has a detailed doc-string queried with `?T` at the
 REPL. Here is a short summary:
 
 
-criterion             | description                                      | notation in Prechelt
-----------------------|--------------------------------------------------|---------------------
-`Never()`             | Never stop                                       |
-`NotANumber()`        | Stop when `NaN` encountered                       |
-`TimeLimit(t=0.5)`    | Stop after `t` hours                          |
-`NumberLimit(n)`      | Stop after `n` checks                          |
-`GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha` | ``GL_α``
-`PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha` | ``PQ_α``
-`Patience(n=5)`       | Stop after `n` consecutive loss increases        | ``UP_s``
-`Disjunction(c...)`   | Stop when any of the criteria `c` apply          |
+criterion             | description                                           | notation in Prechelt
+----------------------|-------------------------------------------------------|---------------------
+`Never()`             | Never stop                                            |
+`NotANumber()`        | Stop when `NaN` encountered                           |
+`TimeLimit(t=0.5)`    | Stop after `t` hours                                  |
+`NumberLimit(n)`      | Stop after `n` loss updates (excl. "training losses") |
+`GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha`      | ``GL_α``
+`PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha`     | ``PQ_α``
+`Patience(n=5)`       | Stop after `n` consecutive loss increases             | ``UP_s``
+`Disjunction(c...)`   | Stop when any of the criteria `c` apply               |
 
 
 ## Criteria tracking both training and out-of-sample losses
