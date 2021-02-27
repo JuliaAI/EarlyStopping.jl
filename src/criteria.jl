@@ -299,22 +299,26 @@ end
 done(criterion::Patience, state) = state.n_increases == criterion.n
 
 """
-    MaximumChecks(n::Int)
+    NumberLimit(; n=100)
 
 $STOPPING_DOC
 
-A stop is triggered by `n` consecutive checking of done.
+A stop is triggered by `n` consecutive loss updates, excluding
+"training" loss updates.
+
+If wrapped in a `stopper::EarlyStopper`, this is the number of calls
+to `done!(stopper)`.
 
 """
 mutable struct NumberLimit <: StoppingCriterion
     n::Int
     function NumberLimit(n::Int)
         n > 0 ||
-            throw(ArgumentError("The maxchecking level `n` must be positive. "))
+            throw(ArgumentError("`n` must be positive. "))
         return new(n)
     end
 end
-NumberLimit(; n) = NumberLimit(n)
+NumberLimit(; n=100) = NumberLimit(n)
 
 update(criterion::NumberLimit, loss) = 1
 @inline function update(criterion::NumberLimit, loss, state)
