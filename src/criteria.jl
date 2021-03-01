@@ -332,3 +332,26 @@ end
 update(criterion::NumberLimit, loss, ::Nothing) = update(criterion, loss)
 
 done(criterion::NumberLimit, state) = state == criterion.n
+
+
+# ## THRESHOLD
+
+"""
+    Threshold(; value=0.0)
+
+$STOPPING_DOC
+
+A stop is triggered as soon as the loss drops below `value`.
+
+"""
+mutable struct Threshold <: StoppingCriterion
+    value::Float64
+end
+Threshold(; value=0.0) = Threshold(value)
+
+update(criterion::Threshold, loss) = loss
+update(criterion::Threshold, loss, state) = loss
+# in case first loss consumed was a training loss:
+update(criterion::Threshold, loss, ::Nothing) = loss
+
+done(criterion::Threshold, state) = state < criterion.value
