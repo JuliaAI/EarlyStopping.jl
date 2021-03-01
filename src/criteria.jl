@@ -223,7 +223,7 @@ function update_training(criterion::PQ, loss)
                    nothing)
 end
 
-update(::PQ, loss) = error("First loss reported to the GL early stopping "*
+update(::PQ, loss) = error("First loss reported to the PQ early stopping "*
                            "algorithm must be a training loss. ")
 
 function update_training(criterion::PQ, loss, state)
