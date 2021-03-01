@@ -160,8 +160,7 @@ end
 end
 
 @testset "Threshold" begin
-    @test_throws ArgumentError Threshold()
-    @test_throws ArgumentError Threshold(value=nothing)
+    @test Threshold().value == 0.0
     stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
 end
 
