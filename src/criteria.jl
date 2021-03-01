@@ -274,7 +274,7 @@ A stop is triggered by `n` consecutive increases in the loss.
 Denoted "_UP_s" in $PRECHELT_REF.
 
 """
-mutable struct Patience <: StoppingCriterion
+struct Patience <: StoppingCriterion
     n::Int
     function Patience(n::Int)
         n > 0 ||
@@ -314,7 +314,7 @@ If wrapped in a `stopper::EarlyStopper`, this is the number of calls
 to `done!(stopper)`.
 
 """
-mutable struct NumberLimit <: StoppingCriterion
+struct NumberLimit <: StoppingCriterion
     n::Int
     function NumberLimit(n::Int)
         n > 0 ||
@@ -344,7 +344,7 @@ $STOPPING_DOC
 A stop is triggered as soon as the loss drops below `value`.
 
 """
-mutable struct Threshold <: StoppingCriterion
+struct Threshold <: StoppingCriterion
     value::Float64
 end
 Threshold(; value=0.0) = Threshold(value)
