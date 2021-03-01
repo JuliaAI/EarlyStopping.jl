@@ -159,6 +159,12 @@ end
     end
 end
 
+@testset "Threshold" begin
+    @test_throws ArgumentError Threshold()
+    @test_throws ArgumentError Threshold(value=nothing)
+    stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
+end
+
 @testset "robustness to first loss being a training loss" begin
     for C in subtypes(StoppingCriterion)
         losses = float.(4:-1:1)

@@ -6,7 +6,8 @@ import Base.+
 
 export StoppingCriterion,
     Never, NotANumber, TimeLimit, GL, Patience, UP, PQ, NumberLimit,
-    Disjunction, criteria, stopping_time, EarlyStopper,
+    Threshold, Disjunction,
+    criteria, stopping_time, EarlyStopper,
     done!, message, needs_in_and_out_of_sample
 
 include("api.jl")
