@@ -20,6 +20,7 @@ struct Disjunction{A,B} <: StoppingCriterion
     end
 end
 
+Disjunction() = Never()
 Disjunction(a) = a
 Disjunction(a, b, c...) = Disjunction(Disjunction(a,b), c...)
 

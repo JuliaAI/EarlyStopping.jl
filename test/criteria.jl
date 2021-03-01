@@ -159,4 +159,12 @@ end
     end
 end
 
+@testset "robustness to first loss being a training loss" begin
+    for C in subtypes(StoppingCriterion)
+        losses = float.(4:-1:1)
+        is_training = [true, true, false, false]
+        stopping_time(C(), losses, is_training)
+    end
+end
+
 true
