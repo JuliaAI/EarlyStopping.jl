@@ -124,6 +124,8 @@ GL(; alpha=2.0) = GL(alpha)
 
 update(::GL, loss) = (loss=loss, min_loss=loss)
 update(::GL, loss, state) = (loss=loss, min_loss=min(loss, state.min_loss))
+# in case first loss consumed was a training loss:
+update(criterion::GL, loss, ::Nothing) = update(criterion, loss)
 done(criterion::GL, state) =
     generalization_loss(state.loss, state.min_loss) > criterion.alpha
 
@@ -295,6 +297,8 @@ update(criterion::Patience, loss) = (loss=loss, n_increases=0)
     end
     return (loss=loss, n_increases=n)
 end
+# in case first loss consumed was a training loss:
+update(criterion::Patience, loss, ::Nothing) = update(criterion, loss)
 
 done(criterion::Patience, state) = state.n_increases == criterion.n
 
@@ -324,5 +328,30 @@ update(criterion::NumberLimit, loss) = 1
 @inline function update(criterion::NumberLimit, loss, state)
     return state+1
 end
+# in case first loss consumed was a training loss:
+update(criterion::NumberLimit, loss, ::Nothing) = update(criterion, loss)
 
 done(criterion::NumberLimit, state) = state == criterion.n
+
+
+# ## THRESHOLD
+
+"""
+    Threshold(; value=0.0)
+
+$STOPPING_DOC
+
+A stop is triggered as soon as the loss drops below `value`.
+
+"""
+mutable struct Threshold <: StoppingCriterion
+    value::Float64
+end
+Threshold(; value=0.0) = Threshold(value)
+
+update(criterion::Threshold, loss) = loss
+update(criterion::Threshold, loss, state) = loss
+# in case first loss consumed was a training loss:
+update(criterion::Threshold, loss, ::Nothing) = loss
+
+done(criterion::Threshold, state) = state < criterion.value

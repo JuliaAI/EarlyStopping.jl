@@ -159,4 +159,17 @@ end
     end
 end
 
+@testset "Threshold" begin
+    @test Threshold().value == 0.0
+    stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
+end
+
+@testset "robustness to first loss being a training loss" begin
+    for C in subtypes(StoppingCriterion)
+        losses = float.(4:-1:1)
+        is_training = [true, true, false, false]
+        stopping_time(C(), losses, is_training)
+    end
+end
+
 true

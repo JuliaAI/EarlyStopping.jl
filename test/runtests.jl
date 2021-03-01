@@ -1,4 +1,4 @@
-using EarlyStopping, Dates, Test
+using EarlyStopping, Dates, Test, InteractiveUtils
 
 @testset "criteria.jl" begin
     include("criteria.jl")
