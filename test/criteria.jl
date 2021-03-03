@@ -5,6 +5,8 @@ losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
 
 @testset "Never" begin
     @test stopping_time(Never(), losses) == 0
+    @test !EarlyStopping.needs_loss(Never())
+    @test !EarlyStopping.needs_training_losses(Never())
 end
 
 @testset "NotANumber" begin
@@ -32,6 +34,8 @@ end
                              [NaN, 1],
                              [true, false],
                              verbosity=1))
+    @test EarlyStopping.needs_loss(NotANumber())
+    @test !EarlyStopping.needs_training_losses(NotANumber())
 end
 
 
@@ -53,11 +57,11 @@ Base.iterate(iter::SleepyIterator, state) =
     @test stopping_time(TimeLimit(t=Millisecond(600)), sleepy_losses) == 7
     # codecov:
     @test EarlyStopping.update_training(TimeLimit(), 42.0) <= now()
+    @test !EarlyStopping.needs_loss(TimeLimit())
+    @test !EarlyStopping.needs_training_losses(TimeLimit())
 end
 
 @testset "GL" begin
-    @test !EarlyStopping.needs_in_and_out_of_sample(GL())
-
     # constructor:
     @test_throws ArgumentError GL(alpha=0)
     @test GL(alpha=1).alpha === 1.0
@@ -76,6 +80,9 @@ end
     @test stopping_time(GL(alpha=90), losses) == 11
     @test stopping_time(GL(alpha=110), losses) == 12
     @test stopping_time(GL(alpha=1000), losses) == 0
+
+    @test EarlyStopping.needs_loss(GL())
+    @test !EarlyStopping.needs_training_losses(GL())
 end
 
 @testset "PQ" begin
@@ -89,7 +96,6 @@ end
     @test_throws ArgumentError PQ(k=1)
 
     c = PQ(alpha=10, k=2)
-    @test EarlyStopping.needs_in_and_out_of_sample(c)
 
     # first update must be training:
     @test_throws Exception EarlyStopping.update(c, 1.0)
@@ -139,6 +145,9 @@ end
     @test stopping_time(PQ(alpha=11.6, k=2), losses2, is_training) == 6
     @test stopping_time(PQ(alpha=15.1, k=2), losses2, is_training) == 8
     @test stopping_time(PQ(alpha=15.3, k=2), losses2, is_training) == 0
+
+    @test EarlyStopping.needs_loss(PQ())
+    @test EarlyStopping.needs_training_losses(PQ())
 end
 
 @testset "Patience" begin
@@ -149,6 +158,9 @@ end
     @test stopping_time(Patience(n=3), losses) == 5
     @test stopping_time(Patience(n=2), losses) == 4
     @test stopping_time(Patience(n=1), losses) == 3
+
+    @test EarlyStopping.needs_loss(Patience())
+    @test !EarlyStopping.needs_training_losses(Patience())
 end
 
 @testset "NumberLimit" begin
@@ -157,11 +169,17 @@ end
     for i in 1:length(losses)
         @test stopping_time(NumberLimit(i), losses) == i
     end
+
+    @test !EarlyStopping.needs_loss(NumberLimit())
+    @test !EarlyStopping.needs_training_losses(NumberLimit())
+
 end
 
 @testset "Threshold" begin
     @test Threshold().value == 0.0
     stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
+    @test EarlyStopping.needs_loss(Threshold())
+    @test !EarlyStopping.needs_training_losses(Threshold())
 end
 
 @testset "robustness to first loss being a training loss" begin
