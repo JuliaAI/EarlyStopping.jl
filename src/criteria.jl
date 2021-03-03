@@ -46,6 +46,8 @@ done(::NotANumber, state) = state
 
 message(::NotANumber, state) = "Stopping early as NaN encountered. "
 
+needs_loss(::Type{<:NotANumber}) = true
+
 
 ## TIME LIMIT
 
@@ -128,6 +130,8 @@ update(::GL, loss, state) = (loss=loss, min_loss=min(loss, state.min_loss))
 update(criterion::GL, loss, ::Nothing) = update(criterion, loss)
 done(criterion::GL, state) =
     generalization_loss(state.loss, state.min_loss) > criterion.alpha
+
+needs_loss(::Type{<:GL}) = true
 
 
 ## PQ
@@ -257,7 +261,8 @@ function done(criterion::PQ, state)
     return  PQ > criterion.alpha
 end
 
-needs_in_and_out_of_sample(::Type{<:PQ}) = true
+needs_loss(::Type{<:PQ}) = true
+needs_training_losses(::Type{<:PQ}) = true
 
 
 ## PATIENCE
@@ -301,6 +306,11 @@ end
 update(criterion::Patience, loss, ::Nothing) = update(criterion, loss)
 
 done(criterion::Patience, state) = state.n_increases == criterion.n
+
+needs_loss(::Type{<:Patience}) = true
+
+
+# # NUMBER LIMIT
 
 """
     NumberLimit(; n=100)
@@ -355,3 +365,5 @@ update(criterion::Threshold, loss, state) = loss
 update(criterion::Threshold, loss, ::Nothing) = loss
 
 done(criterion::Threshold, state) = state < criterion.value
+
+needs_loss(::Type{<:Threshold}) = true
