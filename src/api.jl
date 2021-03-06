@@ -18,7 +18,7 @@ update_training(::StoppingCriterion, loss, state) = state
 # returns whether it's time to stop:
 done(::StoppingCriterion, state) = false
 
-message(criterion::StoppingCriterion, state) = "Early stop triggered by "*
+message(criterion::StoppingCriterion, state) = "Stop triggered by "*
     "$criterion stopping criterion. "
 
 needs_loss(::Type) = false
