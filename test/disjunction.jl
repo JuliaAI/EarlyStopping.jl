@@ -34,4 +34,4 @@ end
 state = EarlyStopping.update(d, 1.0)
 state = EarlyStopping.update(d, 2.0, state)
 @test EarlyStopping.message(d, state) ==
-    "Early stop triggered by Patience(1) stopping criterion. "
+    "Stop triggered by Patience(1) stopping criterion. "

@@ -5,8 +5,11 @@
 | [![Build status](https://github.com/ablaom/EarlyStopping.jl/workflows/CI/badge.svg)](https://github.com/ablaom/EarlyStopping.jl/actions)| [![codecov.io](http://codecov.io/github/ablaom/EarlyStopping.jl/coverage.svg?branch=master)](http://codecov.io/github/ablaom/EarlyStopping.jl?branch=master) |
 
 A small package for applying early stopping criteria to
-loss-generating iterative algorithms, with a view to applications to
-training and optimization of machine learning models.
+loss-generating iterative algorithms, with a view
+to training and optimizing machine learning models.
+
+The basis of [IterationControl.jl](https://github.com/ablaom/IterationControl.jl), 
+a package externally controlling iterative algorithms.
 
 Includes the stopping criteria surveyed in [Prechelt, Lutz
 (1998)](https://link.springer.com/chapter/10.1007%2F3-540-49430-8_3):
@@ -36,7 +39,7 @@ two of these criteria (either triggering the stop):
 ```julia
 using EarlyStopping
 
-stopper = EarlyStopper(Patience(2), NotANumber()) # muliple criteria
+stopper = EarlyStopper(Patience(2), NotANumber()) # multiple criteria
 done!(stopper, 0.123) # false
 done!(stopper, 0.234) # false
 done!(stopper, 0.345) # true
@@ -151,7 +154,7 @@ julia> stopping_time(Patience(3), [10.0, 3.0, 4.0, 5.0], verbosity=1)
 0
 ```
 
-If the lossses include both training and out-of-sample losses as
+If the losses include both training and out-of-sample losses as
 described above, pass an extra `Bool` vector marking the training
 losses with `true`, as in
 
