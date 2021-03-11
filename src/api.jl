@@ -25,5 +25,5 @@ needs_loss(::Type) = false
 needs_training_losses(::Type) = false
 
 for trait in [:needs_loss, :needs_training_losses]
-    eval(:($trait(c::StoppingCriterion) = $trait(typeof(c))))
+    eval(:($trait(c) = $trait(typeof(c))))
 end

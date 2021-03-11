@@ -1,7 +1,7 @@
 name = "EarlyStopping"
 uuid = "792122b4-ca99-40de-a6bc-6742525f08b6"
 authors = ["Anthony D. Blaom <anthony.blaom@gmail.com>"]
-version = "0.1.4"
+version = "0.1.5"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
