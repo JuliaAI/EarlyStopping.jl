@@ -313,7 +313,7 @@ needs_loss(::Type{<:Patience}) = true
 # # NUMBER LIMIT
 
 """
-    NumberLimit(; n=100)
+    CountLimit(; n=100)
 
 $STOPPING_DOC
 
@@ -324,24 +324,24 @@ If wrapped in a `stopper::EarlyStopper`, this is the number of calls
 to `done!(stopper)`.
 
 """
-struct NumberLimit <: StoppingCriterion
+struct CountLimit <: StoppingCriterion
     n::Int
-    function NumberLimit(n::Int)
+    function CountLimit(n::Int)
         n > 0 ||
             throw(ArgumentError("`n` must be positive. "))
         return new(n)
     end
 end
-NumberLimit(; n=100) = NumberLimit(n)
+CountLimit(; n=100) = CountLimit(n)
 
-update(criterion::NumberLimit, loss) = 1
-@inline function update(criterion::NumberLimit, loss, state)
+update(criterion::CountLimit, loss) = 1
+@inline function update(criterion::CountLimit, loss, state)
     return state+1
 end
 # in case first loss consumed was a training loss:
-update(criterion::NumberLimit, loss, ::Nothing) = update(criterion, loss)
+update(criterion::CountLimit, loss, ::Nothing) = update(criterion, loss)
 
-done(criterion::NumberLimit, state) = state == criterion.n
+done(criterion::CountLimit, state) = state == criterion.n
 
 
 # ## THRESHOLD

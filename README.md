@@ -85,7 +85,7 @@ criterion             | description                                           | 
 `Never()`             | Never stop                                            |
 `NotANumber()`        | Stop when `NaN` encountered                           |
 `TimeLimit(t=0.5)`    | Stop after `t` hours                                  |
-`NumberLimit(n=100)`  | Stop after `n` loss updates (excl. "training losses") |
+`CountLimit(n=100)`  | Stop after `n` loss updates (excl. "training losses") |
 `Threshold(value=0.0)`| Stop when `loss < value`                              | 
 `GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha`      | ``GL_α``
 `PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha`     | ``PQ_α``

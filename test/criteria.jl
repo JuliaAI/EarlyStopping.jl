@@ -163,15 +163,15 @@ end
     @test !EarlyStopping.needs_training_losses(Patience())
 end
 
-@testset "NumberLimit" begin
-    @test_throws ArgumentError NumberLimit(n=0)
+@testset "CountLimit" begin
+    @test_throws ArgumentError CountLimit(n=0)
 
     for i in 1:length(losses)
-        @test stopping_time(NumberLimit(i), losses) == i
+        @test stopping_time(CountLimit(i), losses) == i
     end
 
-    @test !EarlyStopping.needs_loss(NumberLimit())
-    @test !EarlyStopping.needs_training_losses(NumberLimit())
+    @test !EarlyStopping.needs_loss(CountLimit())
+    @test !EarlyStopping.needs_training_losses(CountLimit())
 
 end
 
