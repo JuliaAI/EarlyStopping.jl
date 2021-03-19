@@ -313,7 +313,7 @@ needs_loss(::Type{<:Patience}) = true
 ## NUMBER SINCE BEST
 
 """
-    NumberSinceBest(; n=5)
+    NumberSinceBest(; n=6)
 
 $STOPPING_DOC
 
