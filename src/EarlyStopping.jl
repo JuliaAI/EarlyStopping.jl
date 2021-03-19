@@ -5,7 +5,9 @@ using Statistics
 import Base.+
 
 export StoppingCriterion,
-    Never, NotANumber, TimeLimit, GL, Patience, UP, PQ, NumberLimit,
+    Never, NotANumber, TimeLimit, GL, NumberSinceBest,
+    Patience,
+    UP, PQ, NumberLimit,
     Threshold, Disjunction,
     criteria, stopping_time, EarlyStopper,
     done!, message, needs_training_losses
