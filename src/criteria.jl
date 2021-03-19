@@ -310,6 +310,47 @@ done(criterion::Patience, state) = state.n_increases == criterion.n
 needs_loss(::Type{<:Patience}) = true
 
 
+## NUMBER SINCE BEST
+
+"""
+    NumberSinceBest(; n=5)
+
+$STOPPING_DOC
+
+A stop is triggered when the number of calls to the control, since the
+lowest previous value of the loss, is `n`.
+
+"""
+struct NumberSinceBest <: StoppingCriterion
+    n::Int
+    function NumberSinceBest(n::Int)
+        n > 0 ||
+            throw(ArgumentError("`n` must be positive. "))
+        return new(n)
+    end
+end
+NumberSinceBest(; n=6) = NumberSinceBest(n)
+
+update(criterion::NumberSinceBest, loss) = (best=loss, number_since_best=0)
+@inline function update(criterion::NumberSinceBest, loss, state)
+    best, number_since_best = state
+    if loss < best
+        best = loss
+        number_since_best = 0
+    else
+        number_since_best += 1
+    end
+    return (best=best, number_since_best=number_since_best)
+end
+
+# in case first loss consumed was a training loss:
+update(criterion::NumberSinceBest, loss, ::Nothing) = update(criterion, loss)
+
+done(criterion::NumberSinceBest, state) = state.number_since_best == criterion.n
+
+needs_loss(::Type{<:NumberSinceBest}) = true
+
+
 # # NUMBER LIMIT
 
 """

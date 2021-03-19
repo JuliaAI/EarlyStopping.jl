@@ -163,6 +163,23 @@ end
     @test !EarlyStopping.needs_training_losses(Patience())
 end
 
+@testset "NumberSinceBest" begin
+    @test_throws ArgumentError NumberSinceBest(n=0)
+    @test stopping_time(NumberSinceBest(n=6), losses) == 8
+    @test stopping_time(NumberSinceBest(n=5), losses) == 7
+    @test stopping_time(NumberSinceBest(n=4), losses) == 6
+    @test stopping_time(NumberSinceBest(n=3), losses) == 5
+    @test stopping_time(NumberSinceBest(n=2), losses) == 4
+    @test stopping_time(NumberSinceBest(n=1), losses) == 3
+
+    losses2 = Float64[10, 9, 8, 9, 10, 7, 10, 10, 10, 10]
+    @test stopping_time(NumberSinceBest(n=2), losses2) == 5
+    @test stopping_time(NumberSinceBest(n=3), losses2) == 9
+
+    @test EarlyStopping.needs_loss(NumberSinceBest())
+    @test !EarlyStopping.needs_training_losses(NumberSinceBest())
+end
+
 @testset "NumberLimit" begin
     @test_throws ArgumentError NumberLimit(n=0)
 
