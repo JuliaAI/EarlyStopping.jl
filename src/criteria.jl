@@ -318,7 +318,7 @@ needs_loss(::Type{<:Patience}) = true
 $STOPPING_DOC
 
 A stop is triggered when the number of calls to the control, since the
-lowest previous value of the loss, is `n`.
+lowest value of the loss so far, is `n`.
 
 """
 struct NumberSinceBest <: StoppingCriterion
