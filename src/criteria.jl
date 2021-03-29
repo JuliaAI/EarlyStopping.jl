@@ -63,7 +63,7 @@ Any Julia built-in `Real` type can be used for `t`. Subtypes of
 `Period` may also be used, as in `TimeLimit(t=Minute(30))`.
 
 Internally, `t` is rounded to nearest millisecond.
-
+`` 
 """
 struct TimeLimit <: StoppingCriterion
     t::Millisecond
@@ -107,9 +107,9 @@ losses, for example, out-of-sample estimates of the loss associated
 with some iterative machine learning algorithm. Then the
 *generalization loss* at time `t`, is given by
 
-`` GL_t = 100 (E_t - E_opt) \\over |E_opt|``
+`` GL_t = 100 (E_t - E_{opt}) \\over |E_{opt}|``
 
-where `E_opt` is the minimum value of the sequence.
+where ``E_{opt}`` is the minimum value of the sequence.
 
 Reference: $PRECHELT_REF.
 
@@ -179,14 +179,14 @@ the number of model iterations since the last out-of-sample loss
 ``E_{j-1}`` was computed, or `k`, whichever is the smaller.  Then
 the *training progress* at time ``j`` is defined by
 
-`` P_j = 1000 |(M - m) \\over m| ``
+`` P_j = 1000 |M - m|/|m| ``
 
-where `M` is the mean of the training losses ``F_1, F_2, \\ldots ,
-F_K`` and `m` the minimum value of those losses.
+where ``M`` is the mean of the training losses ``F_1, F_2, \\ldots ,
+F_K`` and ``m`` the minimum value of those losses.
 
 The *progress-modified generalization loss* at time ``t`` is given by
 
-`` PQ_t = GL_t \\over P_t``
+`` PQ_t = GL_t / P_t``
 
 where ``GL_t`` is the generalization loss at time ``t``; see
 [`GL`](@ref).
