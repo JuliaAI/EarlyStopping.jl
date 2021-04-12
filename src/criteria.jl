@@ -6,7 +6,7 @@ const PRECHELT_REF = "[Prechelt, Lutz (1998): \"Early Stopping"*
 const STOPPING_DOC = "An early stopping criterion for loss-reporting "*
     "iterative algorithms. "
 
-const CUSTOM_ALTERNATIVE_DOC = "For a custom loss-based stopping "*
+const CUSTOM_ALTERNATIVE_DOC = "For a customizable loss-based stopping "*
     "criterion, use [`WithLossDo`](@ref) or [`WithTrainingLossesDo`](@ref) "*
     "with the `stop_if_true=true` option. "
 
@@ -33,9 +33,8 @@ struct Never <: StoppingCriterion end
 
 $STOPPING_DOC
 
-Stop if any loss (including training losses) of `NaN`, `Inf` or `-Inf`
-is encountered (more precisely, if `isnan(loss)` or `isinf(loss)` is
-`true`).
+Stop if a loss (or training loss) is `NaN`, `Inf` or `-Inf` (or, more
+precisely, if `isnan(loss)` or `isinf(loss)` is `true`).
 
 $CUSTOM_ALTERNATIVE_DOC
 
@@ -438,6 +437,8 @@ needs_loss(::Type{<:Threshold}) = true
 $STOPPING_DOC
 
 Stop if a loss of `NaN` is encountered.
+
+**Now deprecated** in favour of [`OutOfBounds`](@ref).
 
 """
 struct NotANumber <: StoppingCriterion
