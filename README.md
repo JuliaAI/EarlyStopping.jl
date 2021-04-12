@@ -39,7 +39,7 @@ two of these criteria (either triggering the stop):
 ```julia
 using EarlyStopping
 
-stopper = EarlyStopper(Patience(2), NotANumber()) # multiple criteria
+stopper = EarlyStopper(Patience(2), OutOfBounds()) # multiple criteria
 done!(stopper, 0.123) # false
 done!(stopper, 0.234) # false
 done!(stopper, 0.345) # true
@@ -83,7 +83,7 @@ REPL. Here is a short summary:
 criterion             | description                                           | notation in Prechelt
 ----------------------|-------------------------------------------------------|---------------------
 `Never()`             | Never stop                                            |
-`NotANumber()`        | Stop when `NaN` encountered                           |
+`OutOfBounds()`       | Stop when `NaN`, `Inf` or `-Inf` encountered          |
 `TimeLimit(t=0.5)`    | Stop after `t` hours                                  |
 `NumberLimit(n=100)`  | Stop after `n` loss updates (excl. "training losses") |
 `NumberSinceBest(n=6)`| Stop after `n` loss updates (excl. "training losses") |
@@ -140,7 +140,7 @@ criteria (see below). If the iterator terminates without a stop, `0`
 is returned.
 
 ```julia
-julia> stopping_time(NotANumber(), [10.0, 3.0, NaN, 4.0])
+julia> stopping_time(OutOfBounds(), [10.0, 3.0, Inf, 4.0])
 3
 
 julia> stopping_time(Patience(3), [10.0, 3.0, 4.0, 5.0], verbosity=1)
