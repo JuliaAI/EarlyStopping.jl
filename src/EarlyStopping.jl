@@ -5,12 +5,25 @@ using Statistics
 import Base.+
 
 export StoppingCriterion,
-    Never, NotANumber, TimeLimit, GL, NumberSinceBest,
+    Never,
+    OutOfBounds,
+    NotANumber, # deprecated
+    TimeLimit,
+    GL,
+    NumberSinceBest,
     Patience,
-    UP, PQ, NumberLimit,
-    Threshold, Disjunction,
-    criteria, stopping_time, EarlyStopper,
-    done!, message, needs_training_losses
+    UP,
+    PQ,
+    NumberLimit,
+    Threshold,
+    Disjunction,
+    criteria,
+    stopping_time,
+    EarlyStopper,
+    done!,
+    message,
+    needs_training_losses,
+    needs_loss
 
 include("api.jl")
 include("criteria.jl")

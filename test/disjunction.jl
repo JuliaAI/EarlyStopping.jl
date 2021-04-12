@@ -1,5 +1,5 @@
 c1 = Patience(1)
-c2 = NotANumber()
+c2 = OutOfBounds()
 c3 = TimeLimit(t=100)
 
 @test Disjunction(c1) == c1
@@ -20,7 +20,7 @@ show(d)
 end
 
 @testset "stoppping times" begin
-    d2 = Patience(3) + NotANumber()
+    d2 = Patience(3) + OutOfBounds()
     @test stopping_time(d2, [12.0, 10.0, 11.0, 12.0, 13.0, NaN]) == 5
     @test stopping_time(d2, [NaN, 12.0, 10.0, 11.0, 12.0, 13.0]) == 1
 end
@@ -28,7 +28,8 @@ end
 @testset "message" begin
     state = EarlyStopping.update(d, NaN)
     @test EarlyStopping.message(d, state) ==
-        "Stopping early as NaN encountered. "
+        "Stopping early as `NaN`, "*
+        "`Inf` or `-Inf` encountered. "
 end
 
 state = EarlyStopping.update(d, 1.0)

@@ -9,35 +9,34 @@ losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
     @test !EarlyStopping.needs_training_losses(Never())
 end
 
-@testset "NotANumber" begin
-    @test stopping_time(NotANumber(), losses) == 0
+@testset "OutOfBounds" begin
+    @test stopping_time(OutOfBounds(), losses) == 0
     N = 5
     losses2 = fill(123.4, N)
     @test all(reverse(eachindex(losses2))) do j
         losses2[j] = NaN
-        stopping_time(NotANumber(), losses2) == j
+        stopping_time(OutOfBounds(), losses2) == j
     end
-    losses2 = Float64[1, 2, 3, 1, NaN, 3, 1, 2, 3]
+    losses2 = Float64[1, 2, 3, 1, Inf, 3, 1, 2, 3]
     is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(NotANumber(), losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, NaN, 1, 2, 3]
-    @test stopping_time(NotANumber(), losses2, is_training) == 2
+    @test stopping_time(OutOfBounds(), losses2, is_training) == 2
+    losses2 = Float64[1, 2, 3, 1, 2, -Inf, 1, 2, 3]
+    @test stopping_time(OutOfBounds(), losses2, is_training) == 2
     losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(NotANumber(), losses2, is_training) == 3
+    @test stopping_time(OutOfBounds(), losses2, is_training) == 3
     losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(NotANumber(), losses2, is_training) == 0
+    @test stopping_time(OutOfBounds(), losses2, is_training) == 0
     @test_logs((:info, r"loss updates: 0"),
                (:info, r"state: true"),
                (:info, r"loss updates: 1"),
                (:info, r"state: true"),
-               stopping_time(NotANumber(),
-                             [NaN, 1],
+               stopping_time(OutOfBounds(),
+                             [-Inf, 1],
                              [true, false],
                              verbosity=1))
-    @test EarlyStopping.needs_loss(NotANumber())
-    @test !EarlyStopping.needs_training_losses(NotANumber())
+    @test EarlyStopping.needs_loss(OutOfBounds())
+    @test !EarlyStopping.needs_training_losses(OutOfBounds())
 end
-
 
 struct SleepyIterator{T}
     iter::T
@@ -200,11 +199,48 @@ end
 end
 
 @testset "robustness to first loss being a training loss" begin
-    for C in subtypes(StoppingCriterion)
+    criteria = filter(subtypes(StoppingCriterion)) do C
+        C != NotANumber # as deprecated
+    end
+    for C in criteria
         losses = float.(4:-1:1)
         is_training = [true, true, false, false]
         stopping_time(C(), losses, is_training)
     end
 end
+
+
+# # DEPRECATED
+
+@testset "NotANumber" begin
+    @test_deprecated criterion = NotANumber()
+    @test stopping_time(criterion, losses) == 0
+    N = 5
+    losses2 = fill(123.4, N)
+    @test all(reverse(eachindex(losses2))) do j
+        losses2[j] = NaN
+        stopping_time(criterion, losses2) == j
+    end
+    losses2 = Float64[1, 2, 3, 1, NaN, 3, 1, 2, 3]
+    is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
+    @test stopping_time(criterion, losses2, is_training) == 2
+    losses2 = Float64[1, 2, 3, 1, 2, NaN, 1, 2, 3]
+    @test stopping_time(criterion, losses2, is_training) == 2
+    losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
+    @test stopping_time(criterion, losses2, is_training) == 3
+    losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
+    @test stopping_time(criterion, losses2, is_training) == 0
+    @test_logs((:info, r"loss updates: 0"),
+               (:info, r"state: true"),
+               (:info, r"loss updates: 1"),
+               (:info, r"state: true"),
+               stopping_time(criterion,
+                             [NaN, 1],
+                             [true, false],
+                             verbosity=1))
+    @test EarlyStopping.needs_loss(criterion)
+    @test !EarlyStopping.needs_training_losses(criterion)
+end
+
 
 true

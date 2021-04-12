@@ -6,6 +6,10 @@ const PRECHELT_REF = "[Prechelt, Lutz (1998): \"Early Stopping"*
 const STOPPING_DOC = "An early stopping criterion for loss-reporting "*
     "iterative algorithms. "
 
+const CUSTOM_ALTERNATIVE_DOC = "For a custom loss-based stopping "*
+    "criterion, use [`WithLossDo`](@ref) or [`WithTrainingLossesDo`](@ref) "*
+    "with the `stop_if_true=true` option. "
+
 
 ## NEVER
 
@@ -22,31 +26,35 @@ See also [`NotANumber`](@ref), for stopping on encountering `NaN`.
 struct Never <: StoppingCriterion end
 
 
-## NOT A NUMBER
+## OUT OF BOUNDS
 
 """
-    NotANumber()
+    OutOfBounds()
 
 $STOPPING_DOC
 
-Stop if a loss of `NaN` is encountered.
+Stop if any loss (including training losses) of `NaN`, `Inf` or `-Inf`
+is encountered (more precisely, if `isnan(loss)` or `isinf(loss)` is
+`true`).
+
+$CUSTOM_ALTERNATIVE_DOC
 
 """
-struct NotANumber <: StoppingCriterion end
+struct OutOfBounds <: StoppingCriterion end
 
-# state = `true` when NaN has been encountered
+# state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
 
-update(::NotANumber, loss) = isnan(loss)
-update_training(::NotANumber, loss) = isnan(loss)
+update(::OutOfBounds, loss, state=false) =
+    state || isinf(loss) || isnan(loss)
+update_training(::OutOfBounds, loss, state=false) =
+    state || isinf(loss) || isnan(loss)
 
-update(::NotANumber, loss, state) = state || isnan(loss)
-update_training(::NotANumber, loss, state) = state || isnan(loss)
+done(::OutOfBounds, state) = state
 
-done(::NotANumber, state) = state
+message(::OutOfBounds, state) = "Stopping early as `NaN`, "*
+    "`Inf` or `-Inf` encountered. "
 
-message(::NotANumber, state) = "Stopping early as NaN encountered. "
-
-needs_loss(::Type{<:NotANumber}) = true
+needs_loss(::Type{<:OutOfBounds}) = true
 
 
 ## TIME LIMIT
@@ -63,7 +71,7 @@ Any Julia built-in `Real` type can be used for `t`. Subtypes of
 `Period` may also be used, as in `TimeLimit(t=Minute(30))`.
 
 Internally, `t` is rounded to nearest millisecond.
-`` 
+``
 """
 struct TimeLimit <: StoppingCriterion
     t::Millisecond
@@ -278,6 +286,8 @@ A stop is triggered by `n` consecutive increases in the loss.
 
 Denoted "_UP_s" in $PRECHELT_REF.
 
+$CUSTOM_ALTERNATIVE_DOC
+
 """
 struct Patience <: StoppingCriterion
     n::Int
@@ -319,6 +329,8 @@ $STOPPING_DOC
 
 A stop is triggered when the number of calls to the control, since the
 lowest value of the loss so far, is `n`.
+
+$CUSTOM_ALTERNATIVE_DOC
 
 """
 struct NumberSinceBest <: StoppingCriterion
@@ -394,6 +406,8 @@ $STOPPING_DOC
 
 A stop is triggered as soon as the loss drops below `value`.
 
+$CUSTOM_ALTERNATIVE_DOC
+
 """
 struct Threshold <: StoppingCriterion
     value::Float64
@@ -408,3 +422,45 @@ update(criterion::Threshold, loss, ::Nothing) = loss
 done(criterion::Threshold, state) = state < criterion.value
 
 needs_loss(::Type{<:Threshold}) = true
+
+
+
+
+
+
+
+
+## NOT A NUMBER (deprecated)
+
+"""
+    NotANumber()
+
+$STOPPING_DOC
+
+Stop if a loss of `NaN` is encountered.
+
+"""
+struct NotANumber <: StoppingCriterion
+    function NotANumber()
+        Base.depwarn("`NotANumber()` is deprecated. Use `OutOfBounds()` "*
+                     "to trap `NaN`, `Inf` or `-Inf`. ", :NotANumber)
+        return new()
+    end
+end
+
+
+# state = `true` when NaN has been encountered
+
+update(::NotANumber, loss) = isnan(loss)
+update_training(::NotANumber, loss) = isnan(loss)
+
+update(::NotANumber, loss, state) = state || isnan(loss)
+update_training(::NotANumber, loss, state) = state || isnan(loss)
+
+done(::NotANumber, state) = state
+
+message(::NotANumber, state) = "Stopping early as NaN encountered. "
+
+needs_loss(::Type{<:NotANumber}) = true
+
+
