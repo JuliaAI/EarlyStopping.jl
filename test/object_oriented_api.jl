@@ -5,7 +5,7 @@ losses2 = [9.5, 9.3, 10,            # 10.8     0     0     1
            9.9, 9.5, 10,            # 21.2     25.0  1.18  4
            10.6, 10.4, 11]          # 9.61     37.5  3.90  5
 
-stopper = EarlyStopper(PQ(alpha=3.8, k=2), NotANumber())
+stopper = EarlyStopper(PQ(alpha=3.8, k=2), InvalidValue())
 
 @test !done!(stopper, losses2[1], training=true)
 @test !done!(stopper, losses2[2], training=true)
@@ -33,7 +33,7 @@ message(stopper) == "Early stop triggered by "*
 n. "
 
 # verbose case:
-stopper = EarlyStopper(NotANumber(), verbosity=1)
+stopper = EarlyStopper(InvalidValue(), verbosity=1)
 
 @test_logs (:info, r"training loss: 1.0") done!(stopper, 1.0, training=true)
 @test_logs (:info, r"loss: 2.0")  done!(stopper, 2.0)
