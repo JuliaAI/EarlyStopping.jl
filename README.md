@@ -108,7 +108,7 @@ the out-of-sample update, as in the following example:
 
 ```julia
 criterion = PQ(alpha=2.0, k=2)
-needs_in_and_out_of_sample(criterion) # true
+needs_training_losses(criterion) # true
 
 stopper = EarlyStopper(criterion)
 
@@ -177,7 +177,7 @@ To implement a new stopping criterion, one must:
 - Optionally overload methods `message`.
 
 - Optionally overload `update_training` and the trait
-  `needs_in_and_out_of_sample`.
+  `needs_training_losses`.
 
 We demonstrate this with a simplified version of the
 [code](/src/criteria.jl) for `Patience`:
@@ -242,9 +242,9 @@ the same signature as the `update` methods above. Refer to the `PQ`
 
 If a stopping criterion requires one or more `update_training` calls
 per `update` call to work, you should overload the trait
-`needs_in_and_out_of_sample` for that type, as in this example from
+`needs_training_losses` for that type, as in this example from
 the source code:
 
 ```julia
-EarlyStopping.needs_in_and_out_of_sample(::Type{<:PQ}) = true
+EarlyStopping.needs_training_losses(::Type{<:PQ}) = true
 ```
