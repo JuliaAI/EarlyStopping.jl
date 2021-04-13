@@ -9,33 +9,33 @@ losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
     @test !EarlyStopping.needs_training_losses(Never())
 end
 
-@testset "OutOfBounds" begin
-    @test stopping_time(OutOfBounds(), losses) == 0
+@testset "InvalidValue" begin
+    @test stopping_time(InvalidValue(), losses) == 0
     N = 5
     losses2 = fill(123.4, N)
     @test all(reverse(eachindex(losses2))) do j
         losses2[j] = NaN
-        stopping_time(OutOfBounds(), losses2) == j
+        stopping_time(InvalidValue(), losses2) == j
     end
     losses2 = Float64[1, 2, 3, 1, Inf, 3, 1, 2, 3]
     is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(OutOfBounds(), losses2, is_training) == 2
+    @test stopping_time(InvalidValue(), losses2, is_training) == 2
     losses2 = Float64[1, 2, 3, 1, 2, -Inf, 1, 2, 3]
-    @test stopping_time(OutOfBounds(), losses2, is_training) == 2
+    @test stopping_time(InvalidValue(), losses2, is_training) == 2
     losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(OutOfBounds(), losses2, is_training) == 3
+    @test stopping_time(InvalidValue(), losses2, is_training) == 3
     losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(OutOfBounds(), losses2, is_training) == 0
+    @test stopping_time(InvalidValue(), losses2, is_training) == 0
     @test_logs((:info, r"loss updates: 0"),
                (:info, r"state: true"),
                (:info, r"loss updates: 1"),
                (:info, r"state: true"),
-               stopping_time(OutOfBounds(),
+               stopping_time(InvalidValue(),
                              [-Inf, 1],
                              [true, false],
                              verbosity=1))
-    @test EarlyStopping.needs_loss(OutOfBounds())
-    @test !EarlyStopping.needs_training_losses(OutOfBounds())
+    @test EarlyStopping.needs_loss(InvalidValue())
+    @test !EarlyStopping.needs_training_losses(InvalidValue())
 end
 
 struct SleepyIterator{T}

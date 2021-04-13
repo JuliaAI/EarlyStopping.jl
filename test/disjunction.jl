@@ -1,5 +1,5 @@
 c1 = Patience(1)
-c2 = OutOfBounds()
+c2 = InvalidValue()
 c3 = TimeLimit(t=100)
 
 @test Disjunction(c1) == c1
@@ -20,7 +20,7 @@ show(d)
 end
 
 @testset "stoppping times" begin
-    d2 = Patience(3) + OutOfBounds()
+    d2 = Patience(3) + InvalidValue()
     @test stopping_time(d2, [12.0, 10.0, 11.0, 12.0, 13.0, NaN]) == 5
     @test stopping_time(d2, [NaN, 12.0, 10.0, 11.0, 12.0, 13.0]) == 1
 end

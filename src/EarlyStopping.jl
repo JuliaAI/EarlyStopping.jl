@@ -6,7 +6,7 @@ import Base.+
 
 export StoppingCriterion,
     Never,
-    OutOfBounds,
+    InvalidValue,
     NotANumber, # deprecated
     TimeLimit,
     GL,

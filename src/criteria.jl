@@ -29,7 +29,7 @@ struct Never <: StoppingCriterion end
 ## OUT OF BOUNDS
 
 """
-    OutOfBounds()
+    InvalidValue()
 
 $STOPPING_DOC
 
@@ -39,21 +39,21 @@ precisely, if `isnan(loss)` or `isinf(loss)` is `true`).
 $CUSTOM_ALTERNATIVE_DOC
 
 """
-struct OutOfBounds <: StoppingCriterion end
+struct InvalidValue <: StoppingCriterion end
 
 # state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
 
-update(::OutOfBounds, loss, state=false) =
+update(::InvalidValue, loss, state=false) =
     state || isinf(loss) || isnan(loss)
-update_training(::OutOfBounds, loss, state=false) =
+update_training(::InvalidValue, loss, state=false) =
     state || isinf(loss) || isnan(loss)
 
-done(::OutOfBounds, state) = state
+done(::InvalidValue, state) = state
 
-message(::OutOfBounds, state) = "Stopping early as `NaN`, "*
+message(::InvalidValue, state) = "Stopping early as `NaN`, "*
     "`Inf` or `-Inf` encountered. "
 
-needs_loss(::Type{<:OutOfBounds}) = true
+needs_loss(::Type{<:InvalidValue}) = true
 
 
 ## TIME LIMIT
@@ -438,12 +438,12 @@ $STOPPING_DOC
 
 Stop if a loss of `NaN` is encountered.
 
-**Now deprecated** in favour of [`OutOfBounds`](@ref).
+**Now deprecated** in favour of [`InvalidValue`](@ref).
 
 """
 struct NotANumber <: StoppingCriterion
     function NotANumber()
-        Base.depwarn("`NotANumber()` is deprecated. Use `OutOfBounds()` "*
+        Base.depwarn("`NotANumber()` is deprecated. Use `InvalidValue()` "*
                      "to trap `NaN`, `Inf` or `-Inf`. ", :NotANumber)
         return new()
     end
