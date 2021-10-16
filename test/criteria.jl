@@ -209,6 +209,13 @@ end
     end
 end
 
+@testset "Warmup" begin
+    @test_throws ArgumentError Warmup(Patience(), 0)
+    for n in 1:(length(losses)-1)
+        @test stopping_time(Warmup(NumberLimit(1), n), losses) == n+1
+    end
+end
+
 
 # # DEPRECATED
 

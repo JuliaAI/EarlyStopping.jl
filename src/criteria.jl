@@ -423,10 +423,54 @@ done(criterion::Threshold, state) = state < criterion.value
 needs_loss(::Type{<:Threshold}) = true
 
 
+"""
+    Warmup(c::StoppingCriterion, n)
 
+Wait for `n` updates before checking stopping criterion `c`
+"""
+struct Warmup{C} <: StoppingCriterion where {C <: StoppingCriterion}
+    criterion::C
+    n::Int
+    function Warmup(criterion::C, n::N) where {C <: StoppingCriterion, N <: Integer}
+        n > 0 || throw(ArgumentError("`n` must be positive. "))
+        new{C}(criterion, Int(n))
+    end
+end
 
+# Initialize inner state for type-stability, and record first observation
+update(criterion::Warmup, loss) = (1, update(criterion.criterion, loss))
 
+# Catch uninitialized state
+update(c::Warmup, loss, ::Nothing) = update(c, loss)
+update_training(c::Warmup, loss, ::Nothing) = update(c, loss)
 
+# Handle update vs update_training
+update(c::Warmup, loss, state) = _update(update, c, loss, state)
+update_training(c::Warmup, loss, state) = _update(update_training, c, loss, state)
+
+# Dispatch update and update_training here
+function _update(f::Function, criterion::Warmup, loss, state)
+    n, inner = state
+    n += 1
+    if n <= criterion.n
+        # Skip inner criterion
+        return n, inner
+    elseif n == criterion.n+1
+        # First step of inner criterion
+        return n, f(criterion.criterion, loss)
+    else
+        # Step inner criterion
+        return n, f(criterion.criterion, loss, inner)
+    end
+end
+
+# Default warmup for testing
+Warmup() = Warmup(InvalidValue(), 1)
+
+function done(criterion::Warmup, state)
+    # Only check if inner criterion is done after n updates
+    return state[1] <= criterion.n ? false : done(criterion.criterion, state[2])
+end
 
 
 ## NOT A NUMBER (deprecated)
