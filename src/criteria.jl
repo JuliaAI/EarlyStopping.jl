@@ -472,6 +472,8 @@ function done(criterion::Warmup, state)
     return state[1] <= criterion.n ? false : done(criterion.criterion, state[2])
 end
 
+message(c::Warmup, state) = message(c.criterion, state[2])
+
 
 ## NOT A NUMBER (deprecated)
 
