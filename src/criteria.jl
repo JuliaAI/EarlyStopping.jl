@@ -437,6 +437,10 @@ struct Warmup{C} <: StoppingCriterion where {C <: StoppingCriterion}
     end
 end
 
+# Constructors for Warmup
+Warmup() = Warmup(InvalidValue())   # Default for testing
+Warmup(c; n = 1) = Warmup(c, n)     # Provide kwargs interface
+
 # Initialize inner state for type-stability, and record first observation
 update(c::Warmup, loss, ::Nothing) = update(c, loss)
 update(criterion::Warmup, loss) = (1, update(criterion.criterion, loss))
@@ -466,9 +470,6 @@ function _update(f::Function, criterion::Warmup, loss, state)
         return n, f(criterion.criterion, loss, inner)
     end
 end
-
-# Default warmup for testing
-Warmup() = Warmup(InvalidValue(), 1)
 
 function done(criterion::Warmup, state)
     # Only check if inner criterion is done after n updates

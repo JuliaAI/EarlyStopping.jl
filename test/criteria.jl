@@ -217,7 +217,7 @@ end
 
     # Test message
     @testset "message" begin
-        stopper = Warmup(Patience(2), 2)
+        stopper = Warmup(Patience(2); n = 2)
         stopper_ref = Warmup(Patience(2), 2)
         state, state_ref = nothing, nothing
         for loss = losses

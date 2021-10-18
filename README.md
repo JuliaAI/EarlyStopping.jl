@@ -92,7 +92,7 @@ criterion             | description                                           | 
 `PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha`     | ``PQ_α``
 `Patience(n=5)`       | Stop after `n` consecutive loss increases             | ``UP_s``
 `Disjunction(c...)`   | Stop when any of the criteria `c` apply               |
-`Warmup(c, n)`        | Wait for `n` loss updates before checking criteria `c`|
+`Warmup(c; n=1)`      | Wait for `n` loss updates before checking criteria `c`|
 
 
 ## Criteria tracking both training and out-of-sample losses
