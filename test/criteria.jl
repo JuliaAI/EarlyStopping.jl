@@ -209,6 +209,37 @@ end
     end
 end
 
+@testset "Warmup" begin
+    @test_throws ArgumentError Warmup(Patience(), 0)
+    for n in 1:(length(losses)-1)
+        @test stopping_time(Warmup(NumberLimit(1), n), losses) == n+1
+    end
+
+    # Test message
+    @testset "message" begin
+        stopper = Warmup(Patience(2); n = 2)
+        stopper_ref = Warmup(Patience(2), 2)
+        state, state_ref = nothing, nothing
+        for loss = losses
+            state = EarlyStopping.update(stopper, loss, state)
+            state_ref = EarlyStopping.update(stopper_ref, loss, state_ref)
+            @test message(stopper, state) == message(stopper_ref, state_ref)
+        end
+    end
+
+    @testset "training" begin
+        stopper = Warmup(PQ(), 3)
+        is_training = @show map(x -> x%3 > 0, 1:length(losses))
+
+        # Feed 2 training losses + 1 non-training to criteria with/without
+        stop_time = stopping_time(stopper, losses, is_training)
+        ref_stop_time = stopping_time(stopper.criterion, losses[3:end], is_training)
+
+        # PQ only counts training loss updates
+        @test round(stop_time/3, RoundUp) == ref_stop_time
+    end
+end
+
 
 # # DEPRECATED
 
