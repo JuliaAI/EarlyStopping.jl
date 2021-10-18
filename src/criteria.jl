@@ -438,11 +438,12 @@ struct Warmup{C} <: StoppingCriterion where {C <: StoppingCriterion}
 end
 
 # Initialize inner state for type-stability, and record first observation
+update(c::Warmup, loss, ::Nothing) = update(c, loss)
 update(criterion::Warmup, loss) = (1, update(criterion.criterion, loss))
 
 # Catch uninitialized state
-update(c::Warmup, loss, ::Nothing) = update(c, loss)
-update_training(c::Warmup, loss, ::Nothing) = update(c, loss)
+update_training(c::Warmup, loss, ::Nothing) = update_training(c, loss)
+update_training(c::Warmup, loss) = (1, update_training(c.criterion, loss))
 
 # Handle update vs update_training
 update(c::Warmup, loss, state) = _update(update, c, loss, state)
