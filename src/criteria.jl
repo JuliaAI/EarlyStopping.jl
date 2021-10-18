@@ -447,6 +447,8 @@ update_training(c::Warmup, loss, ::Nothing) = update(c, loss)
 # Handle update vs update_training
 update(c::Warmup, loss, state) = _update(update, c, loss, state)
 update_training(c::Warmup, loss, state) = _update(update_training, c, loss, state)
+needs_loss(::Type{<:Warmup{C}}) where C = needs_loss(C)
+needs_training_losses(::Type{<:Warmup{C}}) where C = needs_training_losses(C)
 
 # Dispatch update and update_training here
 function _update(f::Function, criterion::Warmup, loss, state)
