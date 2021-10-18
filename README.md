@@ -8,7 +8,7 @@ A small package for applying early stopping criteria to
 loss-generating iterative algorithms, with a view
 to training and optimizing machine learning models.
 
-The basis of [IterationControl.jl](https://github.com/JuliaAI/IterationControl.jl), 
+The basis of [IterationControl.jl](https://github.com/JuliaAI/IterationControl.jl),
 a package externally controlling iterative algorithms.
 
 Includes the stopping criteria surveyed in [Prechelt, Lutz
@@ -87,11 +87,12 @@ criterion             | description                                           | 
 `TimeLimit(t=0.5)`    | Stop after `t` hours                                  |
 `NumberLimit(n=100)`  | Stop after `n` loss updates (excl. "training losses") |
 `NumberSinceBest(n=6)`| Stop after `n` loss updates (excl. "training losses") |
-`Threshold(value=0.0)`| Stop when `loss < value`                              | 
+`Threshold(value=0.0)`| Stop when `loss < value`                              |
 `GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha`      | ``GL_α``
 `PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha`     | ``PQ_α``
 `Patience(n=5)`       | Stop after `n` consecutive loss increases             | ``UP_s``
 `Disjunction(c...)`   | Stop when any of the criteria `c` apply               |
+`Warmup(c; n=1)`      | Wait for `n` loss updates before checking criteria `c`|
 
 
 ## Criteria tracking both training and out-of-sample losses
