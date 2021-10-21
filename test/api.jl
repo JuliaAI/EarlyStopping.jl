@@ -14,5 +14,6 @@ done(c::Dummy, state) = state.training == state.loss
 stopper  = EarlyStopper(Dummy())
 @test !done!(stopper, 1.0, training=true)
 @test done!(stopper, 1.0)
+@test_criteria Dummy()
 
 true

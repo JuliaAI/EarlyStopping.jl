@@ -229,7 +229,7 @@ end
 
     @testset "training" begin
         stopper = Warmup(PQ(), 3)
-        is_training = @show map(x -> x%3 > 0, 1:length(losses))
+        is_training = map(x -> x%3 > 0, 1:length(losses))
 
         # Feed 2 training losses + 1 non-training to criteria with/without
         stop_time = stopping_time(stopper, losses, is_training)
@@ -237,6 +237,12 @@ end
 
         # PQ only counts training loss updates
         @test round(stop_time/3, RoundUp) == ref_stop_time
+    end
+
+    @testset "integration" begin
+        @test_criteria Warmup(Patience())
+        @test_criteria Warmup(NumberSinceBest())
+        @test_criteria Warmup(Patience(3) + InvalidValue())
     end
 end
 
