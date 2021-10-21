@@ -17,23 +17,18 @@ end
         losses2[j] = NaN
         stopping_time(InvalidValue(), losses2) == j
     end
-    losses2 = Float64[1, 2, 3, 1, Inf, 3, 1, 2, 3]
-    is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, -Inf, 1, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 3
-    losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 0
-    @test_logs((:info, r"loss updates: 0"),
-               (:info, r"state: true"),
-               (:info, r"loss updates: 1"),
-               (:info, r"state: true"),
-               stopping_time(InvalidValue(),
-                             [-Inf, 1],
-                             [true, false],
-                             verbosity=1))
+
+    is_training = map(x -> x%3 > 0, 1:length(losses))
+    @test stopping_time(InvalidValue(), losses, is_training) == 0
+    for n = 1:2:length(losses)
+        n_stop = sum(!, is_training[1:n])
+        losses2 = copy(losses)
+        losses2[n] = Inf
+        @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
+        losses2[n] = NaN
+        @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
+    end
+
     @test EarlyStopping.needs_loss(InvalidValue())
     @test !EarlyStopping.needs_training_losses(InvalidValue())
 end
@@ -258,23 +253,13 @@ end
         losses2[j] = NaN
         stopping_time(criterion, losses2) == j
     end
-    losses2 = Float64[1, 2, 3, 1, NaN, 3, 1, 2, 3]
-    is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(criterion, losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, NaN, 1, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 3
-    losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 0
-    @test_logs((:info, r"loss updates: 0"),
-               (:info, r"state: true"),
-               (:info, r"loss updates: 1"),
-               (:info, r"state: true"),
-               stopping_time(criterion,
-                             [NaN, 1],
-                             [true, false],
-                             verbosity=1))
+    is_training = map(x -> x%3 > 0, 1:length(losses))
+    @test stopping_time(criterion, losses, is_training) == 0
+    for n = 1:2:length(losses)
+        losses2 = copy(losses); losses2[n] = NaN
+        @test stopping_time(criterion, losses2, is_training) == sum(!, is_training[1:n])
+    end
+
     @test EarlyStopping.needs_loss(criterion)
     @test !EarlyStopping.needs_training_losses(criterion)
 end

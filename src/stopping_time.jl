@@ -1,8 +1,3 @@
-_update(::Val{false}, args...) = update(args...)
-_update(::Val{true}, args...) = update_training(args...)
-_getindex(is_training::Nothing, s) = false
-_getindex(is_training, s) = is_training[s]
-
 """
     stopping_time(criterion, losses; verbosity=0)
     stopping_time(criterion, losses, is_training; verbosity=0)
@@ -22,38 +17,31 @@ julia> stopping_time(NotANumber(), [10.0, 3.0, 5.0, 4.0])
 0
 ```
 """
-function stopping_time(criterion, losses, training; verbosity=0)
+function stopping_time(criterion::EarlyStopper, losses, training; verbosity=0)
 
-    t_stop = 0 # meaning no stop
     t = 0 # counts regular `update` calls but ignores `update_training` calls
-    s = 0 # counter for iteration over `losses`
-
-    is_training = training === nothing ?
-        nothing : collect(training)
-    global state
-
-    for loss in losses
-        s += 1
-        _is_training = _getindex(is_training, s)
-        state = if s == 1
-            _update(Val(_is_training), criterion, loss)
-        else
-            _update(Val(_is_training), criterion, loss, state)
+    for (loss, training) in zip(losses, training)
+        if !training
+            t += 1  # Increment count of out-of-sample updates
         end
-        _is_training || (t += 1)
-        verbosity < 1 || begin
+
+        # Update criterion state
+        is_done = done!(criterion, loss; training)
+
+        if verbosity > 0
             @info "loss updates: $t"
-            @info "state: $state"
+            @info "state: $(criterion.state)"
         end
-        if !_is_training && done(criterion, state)
-            t_stop = t
-            break
-        end
+        is_done && return t
     end
 
-    return t_stop
-
+    # No stopping
+    return 0
 end
 
+# If training is not provided -> Assume always out-of-sample
 stopping_time(criterion, losses; kwargs...) =
-    stopping_time(criterion, losses, nothing; kwargs...)
+    stopping_time(criterion, losses, Iterators.repeated(false); kwargs...)
+
+stopping_time(c::StoppingCriterion, args...; kwargs...) =
+    stopping_time(EarlyStopper(c), args...; kwargs...)
