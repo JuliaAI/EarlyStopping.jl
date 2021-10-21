@@ -6,10 +6,11 @@ struct Dummy <: StoppingCriterion end
 @test update_training(Dummy(), 1.0) === nothing
 @test update_training(Dummy(), 1.0, 42.0) == 42.0
 
-update_training(c::Dummy, loss) = (training=loss, loss=nothing)
-update_training(c::Dummy, loss, state) = (training=loss, loss=state.loss)
-update(c::Dummy, loss, state) = (training=state.training, loss=loss)
-done(c::Dummy, state) = state.training == state.loss
+update_training(::Dummy, loss, ::Nothing) = (training=loss, loss=nothing)
+update_training(::Dummy, loss, state) = (training=loss, loss=state.loss)
+update(::Dummy, loss, state) = (training=state.training, loss=loss)
+update(::Dummy, loss, ::Nothing) = (training=nothing, loss=loss)
+done(::Dummy, state) = isnothing(state) ? false : state.training == state.loss
 
 stopper  = EarlyStopper(Dummy())
 @test !done!(stopper, 1.0, training=true)

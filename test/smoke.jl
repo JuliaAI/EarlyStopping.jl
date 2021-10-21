@@ -4,6 +4,7 @@
 Runs a series of tests to check functionality of a StoppingCriterion
 
 - `update(::StoppingCriterion, loss, state=nothing)` is defined
+- Checks that `done(::StoppingCriterion, nothing)` is `false`
 - `done(::StoppingCriterion, state)` can handle state after `update` or `update_training`
 - `message(::StoppingCriterion, state)` can handle state after `update` or `update_training`
 
@@ -30,6 +31,7 @@ macro test_criteria(criteria)
         @testset "done" begin
             loss = rand()
             using EarlyStopping: done, update, update_training
+            @test done($criteria, nothing) == false
             @test done($criteria, update($criteria, loss)) isa Bool
             @test done($criteria, update_training($criteria, loss)) isa Bool
 
