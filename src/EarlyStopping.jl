@@ -22,6 +22,7 @@ export StoppingCriterion,
     stopping_time,
     EarlyStopper,
     done!,
+    reset!,
     message,
     needs_training_losses,
     needs_loss

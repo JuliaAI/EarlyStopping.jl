@@ -28,6 +28,13 @@ stopper = EarlyStopper(PQ(alpha=3.8, k=2), InvalidValue())
 @test !done!(stopper, losses2[15], training=true)
 @test done!(stopper, losses2[16])
 
+# Test reset
+state = stopper.state
+reset!(stopper)
+@test !EarlyStopping.done(stopper)
+reset!(stopper, state)
+@test EarlyStopping.done(stopper)
+
 message(stopper) == "Early stop triggered by "*
     "PQ(3.8, 2, 2.220446049250313e-16) stopping criterio
 n. "
