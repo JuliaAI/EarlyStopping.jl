@@ -223,35 +223,23 @@ struct PQState{T}
 end
 
 update_training(::PQ, loss, ::Nothing) = PQState([loss, ], true, nothing, nothing)
-update(::PQ, loss, ::Nothing) =
-     error("First loss reported to the PQ early stopping "*
-           "algorithm must be a training loss. ")
+update(::PQ, loss::T, ::Nothing) where T = PQState(T[], false, loss, loss)
 
 function update_training(criterion::PQ, loss, state)
-    training_losses = if state.waiting_for_out_of_sample
-        prepend(state.training_losses, loss, criterion.k)
-    else
-        [loss, ]
-    end
-    return PQState(training_losses,
-                   true,
-                   state.loss,
-                   state.min_loss)
+    training_losses = prepend(state.training_losses, loss, criterion.k)
+    return PQState(training_losses, true, state.loss, state.min_loss)
 end
 
 function update(::PQ, loss, state)
-    length(state.training_losses) > 1 ||
-        error("The PQ stopping criterion requires at least two training "*
-              "losses between out-of-sample loss updates. ")
-    return PQState(state.training_losses,
-                   false,
-                   loss,
-                   _min(loss, state.min_loss))
+    min_loss = _min(loss, state.min_loss)
+    return PQState(state.training_losses, false, loss, min_loss)
 end
 
 function done(criterion::PQ, state)
     isnothing(state) && return false
+    isnothing(state.loss) && return false
     state.waiting_for_out_of_sample && return false
+    length(state.training_losses) < criterion.k && return false
     GL = generalization_loss(state.loss, state.min_loss)
     P = progress(state.training_losses)
     P > criterion.tol || return true

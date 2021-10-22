@@ -91,13 +91,7 @@ end
 
     c = PQ(alpha=10, k=2)
 
-    # first update must be training:
-    @test_throws Exception EarlyStopping.update(c, 1.0)
-
     state = EarlyStopping.update_training(c, 10.0)
-    # at least two training updates before out-of-sample update:
-    @test_throws Exception EarlyStopping.update(c, state, 10.0)
-
     state = EarlyStopping.update_training(c, 10.0, state)
     state = EarlyStopping.update(c, 10.0, state)
     @test EarlyStopping.done(c, state) # progress = 0
