@@ -43,9 +43,9 @@ struct InvalidValue <: StoppingCriterion end
 
 # state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
 update(::InvalidValue, loss, state=false) =
-    !isnothing(state) && state || isinf(loss) || isnan(loss)
+    state !== nothing && state || isinf(loss) || isnan(loss)
 update_training(c::InvalidValue, loss, state) = update(c, loss, state)
-done(::InvalidValue, state) = !isnothing(state) && state
+done(::InvalidValue, state) = state !== nothing && state
 
 message(::InvalidValue, state) = "Stopping early as `NaN`, "*
     "`Inf` or `-Inf` encountered. "
@@ -86,7 +86,7 @@ TimeLimit(; t =Minute(30)) = TimeLimit(t)
 update(::TimeLimit, loss, ::Nothing) = now()
 update_training(::TimeLimit, loss, ::Nothing) = now()
 done(criterion::TimeLimit, state) =
-    isnothing(state) ? false : criterion.t < now() - state
+    state === nothing ? false : criterion.t < now() - state
 
 
 ## GL
@@ -127,7 +127,7 @@ GL(; alpha=2.0) = GL(alpha)
 update(::GL, loss, ::Nothing) = (loss=loss, min_loss=loss)
 update(::GL, loss, state) = (loss=loss, min_loss=min(loss, state.min_loss))
 function done(criterion::GL, state)
-    if isnothing(state)
+    if state === nothing
         return false
     else
         gl = generalization_loss(state.loss, state.min_loss)
@@ -236,8 +236,8 @@ function update(::PQ, loss, state)
 end
 
 function done(criterion::PQ, state)
-    isnothing(state) && return false
-    isnothing(state.loss) && return false
+    state === nothing && return false
+    state.loss === nothing && return false
     state.waiting_for_out_of_sample && return false
     length(state.training_losses) < criterion.k && return false
     GL = generalization_loss(state.loss, state.min_loss)
@@ -292,7 +292,7 @@ update(::Patience, loss, ::Nothing) = (loss=loss, n_increases=0)
 end
 
 done(criterion::Patience, state) =
-    isnothing(state) ? false : state.n_increases == criterion.n
+    state === nothing ? false : state.n_increases == criterion.n
 
 needs_loss(::Type{<:Patience}) = true
 
@@ -333,7 +333,7 @@ update(::NumberSinceBest, loss, ::Nothing) = (best=loss, number_since_best=0)
 end
 
 done(criterion::NumberSinceBest, state) =
-    isnothing(state) ? false : state.number_since_best == criterion.n
+    state === nothing ? false : state.number_since_best == criterion.n
 
 needs_loss(::Type{<:NumberSinceBest}) = true
 
@@ -365,7 +365,7 @@ NumberLimit(; n=100) = NumberLimit(n)
 update(criterion::NumberLimit, loss, ::Nothing) = 1
 update(::NumberLimit, loss, state) = state+1
 done(criterion::NumberLimit, state) =
-    isnothing(state) ? false : state >= criterion.n
+    state === nothing ? false : state >= criterion.n
 
 
 # ## THRESHOLD
@@ -387,7 +387,7 @@ Threshold(; value=0.0) = Threshold(value)
 
 update(::Threshold, loss, state) = loss
 done(criterion::Threshold, state) =
-    isnothing(state) ? false : state < criterion.value
+    state === nothing ? false : state < criterion.value
 
 needs_loss(::Type{<:Threshold}) = true
 
@@ -442,7 +442,7 @@ end
 
 function done(criterion::Warmup, state)
     # Only check if inner criterion is done after n updates
-    isnothing(state) && return false
+    state === nothing && return false
     return state[1] <= criterion.n ? false : done(criterion.criterion, state[2])
 end
 
@@ -471,10 +471,10 @@ end
 
 
 # state = `true` when NaN has been encountered
-update(::NotANumber, loss, state) = !isnothing(state) && state || isnan(loss)
+update(::NotANumber, loss, state) = state !== nothing && state || isnan(loss)
 update_training(c::NotANumber, loss, state) = update(c, loss, state)
 
-done(::NotANumber, state) = !isnothing(state) && state
+done(::NotANumber, state) = state !== nothing && state
 
 message(::NotANumber, state) = "Stopping early as NaN encountered. "
 

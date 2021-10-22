@@ -26,7 +26,7 @@ function stopping_time(criterion::EarlyStopper, losses, training; verbosity=0)
         end
 
         # Update criterion state
-        is_done = done!(criterion, loss; training)
+        is_done = done!(criterion, loss; training = training)
 
         if verbosity > 0
             @info "loss updates: $t"

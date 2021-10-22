@@ -71,7 +71,7 @@ _done(criterion, state, old_done) = old_done || done(criterion, state)
 _done(d::Disjunction, state, old_done) =
     _done(d.a, state.a, _done(d.b, state.b, old_done))
 
-done(d::Disjunction, state) = isnothing(state) ? false : _done(d, state, false)
+done(d::Disjunction, state) = state === nothing ? false : _done(d, state, false)
 
 
 ## RECURSION TO BUILD MESSAGE
