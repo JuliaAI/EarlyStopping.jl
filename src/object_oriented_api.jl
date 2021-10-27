@@ -25,9 +25,9 @@ the update is for training, as in
 
     done!(stopper, 0.123; training=true)
 
-In these cases, the out-of-sample update must always come after the
-corresponding training update. Multiple training updates may precede
-the out-of-sample update.
+Zero or more training updates may precede each out-of-sample update.
+
+The state of the stopper can be reset or restored to a prior state using `reset!`
 
 """
 mutable struct EarlyStopper{S}

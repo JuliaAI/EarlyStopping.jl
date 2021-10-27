@@ -162,37 +162,34 @@ _min(x, y) = min(x, y)
 A stopping criterion for training iterative supervised learners.
 
 A stop is triggered when Prechelt's progress-modified generalization
-loss exceeds the threshold `alpha`, or if the training progress drops
-below `tol`. Here `k` is the maximum number of training (in-sample)
-losses to be used to estimate the training progress.
+loss exceeds the threshold ``PQ_T > alpha``, or if the training progress drops
+below ``P_j ≤ tol``. Here `k` is the number of training (in-sample) losses used to
+estimate the training progress.
 
-**Context and explanation of terminology.** The progress-modified loss
-is defined in the following scenario: Estimates, ``E_1, E_2, ...,
-E_t``, of the out-of-sample loss of an iterative supervised learner
-are being computed, but not necessarily at every iteration. However,
-training losses for every iteration *are* being made available
-(usually as a by-product of training) which can be used to quantify
-recent training progress, as follows.
+## Context and explanation of terminology
 
-Fix a time ``j``, corresponding to some out-of-sample loss ``E_j``,
-and let ``F_1`` be the corresponding training loss, ``F_2`` the
-training loss in the previous interation of the model, ``F_3``, the
-training loss two iterations previously, and so on. Let ``K`` denote
-the number of model iterations since the last out-of-sample loss
-``E_{j-1}`` was computed, or `k`, whichever is the smaller.  Then
-the *training progress* at time ``j`` is defined by
+The *training progress* at time ``j`` is defined by
 
 `` P_j = 1000 |M - m|/|m| ``
 
-where ``M`` is the mean of the training losses ``F_1, F_2, \\ldots ,
-F_K`` and ``m`` the minimum value of those losses.
+where ``M`` is the mean of the last `k` training losses ``F_1, F_2, …, F_k``
+and ``m`` is the minimum value of those losses.
 
-The *progress-modified generalization loss* at time ``t`` is given by
+The *progress-modified generalization loss* at time ``t`` is then given by
 
 `` PQ_t = GL_t / P_t``
 
 where ``GL_t`` is the generalization loss at time ``t``; see
 [`GL`](@ref).
+
+PQ will stop when the following are true:
+
+1) At least `k` training samples have been collected via
+   `done!(c::PQ, loss; training = true)` or `update_training(c::PQ, loss, state)`
+2) The last update was an out-of-sample update.
+   (`done!(::PQ, loss; training=true)` is always false)
+3) The progress-modified generalization loss exceeds the threshold
+   ``PQ_t > alpha`` **OR** the training progress stalls ``P_j ≤ tol``.
 
 Reference: $PRECHELT_REF.
 
