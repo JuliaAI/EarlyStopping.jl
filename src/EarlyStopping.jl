@@ -22,6 +22,7 @@ export StoppingCriterion,
     stopping_time,
     EarlyStopper,
     done!,
+    reset!,
     message,
     needs_training_losses,
     needs_loss
@@ -29,7 +30,7 @@ export StoppingCriterion,
 include("api.jl")
 include("criteria.jl")
 include("disjunction.jl")
-include("stopping_time.jl")
 include("object_oriented_api.jl")
+include("stopping_time.jl")
 
 end # module

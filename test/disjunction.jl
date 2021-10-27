@@ -23,6 +23,8 @@ end
     d2 = Patience(3) + InvalidValue()
     @test stopping_time(d2, [12.0, 10.0, 11.0, 12.0, 13.0, NaN]) == 5
     @test stopping_time(d2, [NaN, 12.0, 10.0, 11.0, 12.0, 13.0]) == 1
+    @test_criteria NumberSinceBest() + PQ()
+    @test_criteria Patience(3) + InvalidValue()
 end
 
 @testset "message" begin

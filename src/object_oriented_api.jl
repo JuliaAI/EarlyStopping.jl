@@ -23,11 +23,11 @@ For criteria tracking both an "out-of-sample" loss and a "training"
 loss (eg, stopping criterion of type `PQ`), specify `training=true` if
 the update is for training, as in
 
-    done!(stopper, 0.123, training=true)
+    done!(stopper, 0.123; training=true)
 
-In these cases, the out-of-sample update must always come after the
-corresponding training update. Multiple training updates may preceed
-the out-of-sample update.
+Zero or more training updates may precede each out-of-sample update.
+
+The state of the stopper can be reset or restored to a prior state using `reset!`
 
 """
 mutable struct EarlyStopper{S}
@@ -35,45 +35,41 @@ mutable struct EarlyStopper{S}
     verbosity::Int
     state
     EarlyStopper(criterion::S; verbosity=0) where S =
-        new{S}(criterion, verbosity)
+        new{S}(criterion, verbosity, nothing)
 end
 EarlyStopper(criteria...; kwargs...) = EarlyStopper(sum(criteria); kwargs...)
 
+# Dispatch message, done, update and update_training to wrapped criterion
 for f in [:message, :done]
-    eval(quote
-         $f(stopper::EarlyStopper) = $f(stopper.criterion, stopper.state)
-         end)
+    @eval $f(stopper::EarlyStopper) = $f(stopper.criterion, stopper.state)
 end
-
-# defines 2 private functons `done_after_update!(stopper, loss)` and
-# `done_after_training_update!(stopper, loss)`:
 for f in [:update, :update_training]
-    newf = Symbol(string("done_after_", f, "!"))
-    eval(quote
-         function $newf(stopper::EarlyStopper, loss)
-             if isdefined(stopper, :state)
-                 stopper.state = $f(stopper.criterion, loss, stopper.state)
-             else
-                 stopper.state = $f(stopper.criterion, loss)
-             end
-             return done(stopper)
-         end
-         end)
+    @eval $f(stopper::EarlyStopper, loss) =
+        $f(stopper.criterion, loss, stopper.state)
 end
 
 """
-    done!(stopper::EarlyStopper)
+    done!(stopper::EarlyStopper, loss; training = false)
 """
 function done!(stopper::EarlyStopper, loss; training=false)
-    ret = if training
-        done_after_update_training!(stopper, loss)
+    if training
+        stopper.state = update_training(stopper, loss)
     else
-        done_after_update!(stopper, loss)
+        stopper.state = update(stopper, loss)
     end
     if stopper.verbosity > 0
         suffix = training ? "training " : ""
         loss_str = suffix*"loss"
         @info "$loss_str: $loss\t state: $(stopper.state)"
     end
-    return ret
+    return done(stopper)
 end
+
+"""
+    reset!(stopper::EarlyStopper)
+    reset!(stopper::EarlyStopper, state)
+
+Reset a stopper to it's uninitialized state or to a particular state
+"""
+reset!(stopper::EarlyStopper) = stopper.state = nothing
+reset!(stopper::EarlyStopper, state) = stopper.state = state

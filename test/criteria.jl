@@ -17,23 +17,18 @@ end
         losses2[j] = NaN
         stopping_time(InvalidValue(), losses2) == j
     end
-    losses2 = Float64[1, 2, 3, 1, Inf, 3, 1, 2, 3]
-    is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, -Inf, 1, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 3
-    losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(InvalidValue(), losses2, is_training) == 0
-    @test_logs((:info, r"loss updates: 0"),
-               (:info, r"state: true"),
-               (:info, r"loss updates: 1"),
-               (:info, r"state: true"),
-               stopping_time(InvalidValue(),
-                             [-Inf, 1],
-                             [true, false],
-                             verbosity=1))
+
+    is_training = map(x -> x%3 > 0, 1:length(losses))
+    @test stopping_time(InvalidValue(), losses, is_training) == 0
+    for n = 1:2:length(losses)
+        n_stop = sum(!, is_training[1:n])
+        losses2 = copy(losses)
+        losses2[n] = Inf
+        @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
+        losses2[n] = NaN
+        @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
+    end
+
     @test EarlyStopping.needs_loss(InvalidValue())
     @test !EarlyStopping.needs_training_losses(InvalidValue())
 end
@@ -96,13 +91,7 @@ end
 
     c = PQ(alpha=10, k=2)
 
-    # first update must be training:
-    @test_throws Exception EarlyStopping.update(c, 1.0)
-
     state = EarlyStopping.update_training(c, 10.0)
-    # at least two training updates before out-of-sample update:
-    @test_throws Exception EarlyStopping.update(c, state, 10.0)
-
     state = EarlyStopping.update_training(c, 10.0, state)
     state = EarlyStopping.update(c, 10.0, state)
     @test EarlyStopping.done(c, state) # progress = 0
@@ -229,7 +218,7 @@ end
 
     @testset "training" begin
         stopper = Warmup(PQ(), 3)
-        is_training = @show map(x -> x%3 > 0, 1:length(losses))
+        is_training = map(x -> x%3 > 0, 1:length(losses))
 
         # Feed 2 training losses + 1 non-training to criteria with/without
         stop_time = stopping_time(stopper, losses, is_training)
@@ -237,6 +226,12 @@ end
 
         # PQ only counts training loss updates
         @test round(stop_time/3, RoundUp) == ref_stop_time
+    end
+
+    @testset "integration" begin
+        @test_criteria Warmup(Patience())
+        @test_criteria Warmup(NumberSinceBest())
+        @test_criteria Warmup(Patience(3) + InvalidValue())
     end
 end
 
@@ -252,23 +247,13 @@ end
         losses2[j] = NaN
         stopping_time(criterion, losses2) == j
     end
-    losses2 = Float64[1, 2, 3, 1, NaN, 3, 1, 2, 3]
-    is_training = Bool[1, 1, 0, 1, 1, 0, 1, 1, 0]
-    @test stopping_time(criterion, losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, NaN, 1, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 2
-    losses2 = Float64[1, 2, 3, 1, 2, 3, NaN, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 3
-    losses2 = Float64[1, 2, 3, 1, 2, 3, 1, 2, 3]
-    @test stopping_time(criterion, losses2, is_training) == 0
-    @test_logs((:info, r"loss updates: 0"),
-               (:info, r"state: true"),
-               (:info, r"loss updates: 1"),
-               (:info, r"state: true"),
-               stopping_time(criterion,
-                             [NaN, 1],
-                             [true, false],
-                             verbosity=1))
+    is_training = map(x -> x%3 > 0, 1:length(losses))
+    @test stopping_time(criterion, losses, is_training) == 0
+    for n = 1:2:length(losses)
+        losses2 = copy(losses); losses2[n] = NaN
+        @test stopping_time(criterion, losses2, is_training) == sum(!, is_training[1:n])
+    end
+
     @test EarlyStopping.needs_loss(criterion)
     @test !EarlyStopping.needs_training_losses(criterion)
 end

@@ -42,13 +42,10 @@ $CUSTOM_ALTERNATIVE_DOC
 struct InvalidValue <: StoppingCriterion end
 
 # state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
-
 update(::InvalidValue, loss, state=false) =
-    state || isinf(loss) || isnan(loss)
-update_training(::InvalidValue, loss, state=false) =
-    state || isinf(loss) || isnan(loss)
-
-done(::InvalidValue, state) = state
+    state !== nothing && state || isinf(loss) || isnan(loss)
+update_training(c::InvalidValue, loss, state) = update(c, loss, state)
+done(::InvalidValue, state) = state !== nothing && state
 
 message(::InvalidValue, state) = "Stopping early as `NaN`, "*
     "`Inf` or `-Inf` encountered. "
@@ -86,13 +83,10 @@ TimeLimit(t) = TimeLimit(round(Int, 3_600_000*t) |> Millisecond)
 TimeLimit(; t =Minute(30)) = TimeLimit(t)
 
 # state = time at initialization
-
-update(::TimeLimit, loss) = now()
-update_training(::TimeLimit, loss) = now()
-update(::TimeLimit, loss, state) = state
-done(criterion::TimeLimit, state) = begin
-    criterion.t < now() - state
-end
+update(::TimeLimit, loss, ::Nothing) = now()
+update_training(::TimeLimit, loss, ::Nothing) = now()
+done(criterion::TimeLimit, state) =
+    state === nothing ? false : criterion.t < now() - state
 
 
 ## GL
@@ -130,14 +124,16 @@ struct GL <: StoppingCriterion
     end
 end
 GL(; alpha=2.0) = GL(alpha)
-
-update(::GL, loss) = (loss=loss, min_loss=loss)
+update(::GL, loss, ::Nothing) = (loss=loss, min_loss=loss)
 update(::GL, loss, state) = (loss=loss, min_loss=min(loss, state.min_loss))
-# in case first loss consumed was a training loss:
-update(criterion::GL, loss, ::Nothing) = update(criterion, loss)
-done(criterion::GL, state) =
-    generalization_loss(state.loss, state.min_loss) > criterion.alpha
-
+function done(criterion::GL, state)
+    if state === nothing
+        return false
+    else
+        gl = generalization_loss(state.loss, state.min_loss)
+        return  gl > criterion.alpha
+    end
+end
 needs_loss(::Type{<:GL}) = true
 
 
@@ -166,37 +162,34 @@ _min(x, y) = min(x, y)
 A stopping criterion for training iterative supervised learners.
 
 A stop is triggered when Prechelt's progress-modified generalization
-loss exceeds the threshold `alpha`, or if the training progress drops
-below `tol`. Here `k` is the maximum number of training (in-sample)
-losses to be used to estimate the training progress.
+loss exceeds the threshold ``PQ_T > alpha``, or if the training progress drops
+below ``P_j ≤ tol``. Here `k` is the number of training (in-sample) losses used to
+estimate the training progress.
 
-**Context and explanation of terminology.** The progress-modified loss
-is defined in the following scenario: Estimates, ``E_1, E_2, ...,
-E_t``, of the out-of-sample loss of an iterative supervised learner
-are being computed, but not necessarily at every iteration. However,
-training losses for every iteration *are* being made available
-(usually as a by-product of training) which can be used to quantify
-recent training progress, as follows.
+## Context and explanation of terminology
 
-Fix a time ``j``, corresponding to some out-of-sample loss ``E_j``,
-and let ``F_1`` be the corresponding training loss, ``F_2`` the
-training loss in the previous interation of the model, ``F_3``, the
-training loss two iterations previously, and so on. Let ``K`` denote
-the number of model iterations since the last out-of-sample loss
-``E_{j-1}`` was computed, or `k`, whichever is the smaller.  Then
-the *training progress* at time ``j`` is defined by
+The *training progress* at time ``j`` is defined by
 
 `` P_j = 1000 |M - m|/|m| ``
 
-where ``M`` is the mean of the training losses ``F_1, F_2, \\ldots ,
-F_K`` and ``m`` the minimum value of those losses.
+where ``M`` is the mean of the last `k` training losses ``F_1, F_2, …, F_k``
+and ``m`` is the minimum value of those losses.
 
-The *progress-modified generalization loss* at time ``t`` is given by
+The *progress-modified generalization loss* at time ``t`` is then given by
 
 `` PQ_t = GL_t / P_t``
 
 where ``GL_t`` is the generalization loss at time ``t``; see
 [`GL`](@ref).
+
+PQ will stop when the following are true:
+
+1) At least `k` training samples have been collected via
+   `done!(c::PQ, loss; training = true)` or `update_training(c::PQ, loss, state)`
+2) The last update was an out-of-sample update.
+   (`done!(::PQ, loss; training=true)` is always false)
+3) The progress-modified generalization loss exceeds the threshold
+   ``PQ_t > alpha`` **OR** the training progress stalls ``P_j ≤ tol``.
 
 Reference: $PRECHELT_REF.
 
@@ -226,41 +219,24 @@ struct PQState{T}
     min_loss::Union{Nothing,T}
 end
 
-function update_training(criterion::PQ, loss)
-    training_losses = [loss, ]
-    return PQState(training_losses,
-                   true,
-                   nothing,
-                   nothing)
-end
-
-update(::PQ, loss) = error("First loss reported to the PQ early stopping "*
-                           "algorithm must be a training loss. ")
+update_training(::PQ, loss, ::Nothing) = PQState([loss, ], true, nothing, nothing)
+update(::PQ, loss::T, ::Nothing) where T = PQState(T[], false, loss, loss)
 
 function update_training(criterion::PQ, loss, state)
-    training_losses = if state.waiting_for_out_of_sample
-        prepend(state.training_losses, loss, criterion.k)
-    else
-        [loss, ]
-    end
-    return PQState(training_losses,
-                   true,
-                   state.loss,
-                   state.min_loss)
+    training_losses = prepend(state.training_losses, loss, criterion.k)
+    return PQState(training_losses, true, state.loss, state.min_loss)
 end
 
 function update(::PQ, loss, state)
-    length(state.training_losses) > 1 ||
-        error("The PQ stopping criterion requires at least two training "*
-              "losses between out-of-sample loss updates. ")
-    return PQState(state.training_losses,
-                   false,
-                   loss,
-                   _min(loss, state.min_loss))
+    min_loss = _min(loss, state.min_loss)
+    return PQState(state.training_losses, false, loss, min_loss)
 end
 
 function done(criterion::PQ, state)
+    state === nothing && return false
+    state.loss === nothing && return false
     state.waiting_for_out_of_sample && return false
+    length(state.training_losses) < criterion.k && return false
     GL = generalization_loss(state.loss, state.min_loss)
     P = progress(state.training_losses)
     P > criterion.tol || return true
@@ -301,8 +277,8 @@ Patience(; n=5) = Patience(n)
 # Prechelt alias:
 const UP = Patience
 
-update(criterion::Patience, loss) = (loss=loss, n_increases=0)
-@inline function update(criterion::Patience, loss, state)
+update(::Patience, loss, ::Nothing) = (loss=loss, n_increases=0)
+@inline function update(::Patience, loss, state)
     old_loss, n = state
     if loss > old_loss
         n += 1
@@ -311,10 +287,9 @@ update(criterion::Patience, loss) = (loss=loss, n_increases=0)
     end
     return (loss=loss, n_increases=n)
 end
-# in case first loss consumed was a training loss:
-update(criterion::Patience, loss, ::Nothing) = update(criterion, loss)
 
-done(criterion::Patience, state) = state.n_increases == criterion.n
+done(criterion::Patience, state) =
+    state === nothing ? false : state.n_increases == criterion.n
 
 needs_loss(::Type{<:Patience}) = true
 
@@ -342,8 +317,8 @@ struct NumberSinceBest <: StoppingCriterion
 end
 NumberSinceBest(; n=6) = NumberSinceBest(n)
 
-update(criterion::NumberSinceBest, loss) = (best=loss, number_since_best=0)
-@inline function update(criterion::NumberSinceBest, loss, state)
+update(::NumberSinceBest, loss, ::Nothing) = (best=loss, number_since_best=0)
+@inline function update(::NumberSinceBest, loss, state)
     best, number_since_best = state
     if loss < best
         best = loss
@@ -354,10 +329,8 @@ update(criterion::NumberSinceBest, loss) = (best=loss, number_since_best=0)
     return (best=best, number_since_best=number_since_best)
 end
 
-# in case first loss consumed was a training loss:
-update(criterion::NumberSinceBest, loss, ::Nothing) = update(criterion, loss)
-
-done(criterion::NumberSinceBest, state) = state.number_since_best == criterion.n
+done(criterion::NumberSinceBest, state) =
+    state === nothing ? false : state.number_since_best == criterion.n
 
 needs_loss(::Type{<:NumberSinceBest}) = true
 
@@ -386,14 +359,10 @@ struct NumberLimit <: StoppingCriterion
 end
 NumberLimit(; n=100) = NumberLimit(n)
 
-update(criterion::NumberLimit, loss) = 1
-@inline function update(criterion::NumberLimit, loss, state)
-    return state+1
-end
-# in case first loss consumed was a training loss:
-update(criterion::NumberLimit, loss, ::Nothing) = update(criterion, loss)
-
-done(criterion::NumberLimit, state) = state == criterion.n
+update(criterion::NumberLimit, loss, ::Nothing) = 1
+update(::NumberLimit, loss, state) = state+1
+done(criterion::NumberLimit, state) =
+    state === nothing ? false : state >= criterion.n
 
 
 # ## THRESHOLD
@@ -413,12 +382,9 @@ struct Threshold <: StoppingCriterion
 end
 Threshold(; value=0.0) = Threshold(value)
 
-update(criterion::Threshold, loss) = loss
-update(criterion::Threshold, loss, state) = loss
-# in case first loss consumed was a training loss:
-update(criterion::Threshold, loss, ::Nothing) = loss
-
-done(criterion::Threshold, state) = state < criterion.value
+update(::Threshold, loss, state) = loss
+done(criterion::Threshold, state) =
+    state === nothing ? false : state < criterion.value
 
 needs_loss(::Type{<:Threshold}) = true
 
@@ -473,6 +439,7 @@ end
 
 function done(criterion::Warmup, state)
     # Only check if inner criterion is done after n updates
+    state === nothing && return false
     return state[1] <= criterion.n ? false : done(criterion.criterion, state[2])
 end
 
@@ -501,14 +468,10 @@ end
 
 
 # state = `true` when NaN has been encountered
+update(::NotANumber, loss, state) = state !== nothing && state || isnan(loss)
+update_training(c::NotANumber, loss, state) = update(c, loss, state)
 
-update(::NotANumber, loss) = isnan(loss)
-update_training(::NotANumber, loss) = isnan(loss)
-
-update(::NotANumber, loss, state) = state || isnan(loss)
-update_training(::NotANumber, loss, state) = state || isnan(loss)
-
-done(::NotANumber, state) = state
+done(::NotANumber, state) = state !== nothing && state
 
 message(::NotANumber, state) = "Stopping early as NaN encountered. "
 
