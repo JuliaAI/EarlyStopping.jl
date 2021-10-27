@@ -26,7 +26,7 @@ Disjunction(a, b, c...) = Disjunction(Disjunction(a,b), c...)
 
 for f in [:update, :update_training]
     eval(quote
-         $f(d::Disjunction, loss) =
+         $f(d::Disjunction, loss, ::Nothing) =
              (a = $f(d.a, loss), b = $f(d.b, loss))
          $f(d::Disjunction, loss, state) =
              (a = $f(d.a, loss, state.a),
@@ -71,7 +71,7 @@ _done(criterion, state, old_done) = old_done || done(criterion, state)
 _done(d::Disjunction, state, old_done) =
     _done(d.a, state.a, _done(d.b, state.b, old_done))
 
-done(d::Disjunction, state) = _done(d, state, false)
+done(d::Disjunction, state) = state === nothing ? false : _done(d, state, false)
 
 
 ## RECURSION TO BUILD MESSAGE
