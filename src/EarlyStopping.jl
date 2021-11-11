@@ -23,9 +23,7 @@ export StoppingCriterion,
     EarlyStopper,
     done!,
     reset!,
-    message,
-    needs_training_losses,
-    needs_loss
+    message
 
 include("api.jl")
 include("criteria.jl")

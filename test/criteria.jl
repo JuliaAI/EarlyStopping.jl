@@ -5,8 +5,6 @@ losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
 
 @testset "Never" begin
     @test stopping_time(Never(), losses) == 0
-    @test !EarlyStopping.needs_loss(Never())
-    @test !EarlyStopping.needs_training_losses(Never())
 end
 
 @testset "InvalidValue" begin
@@ -28,9 +26,6 @@ end
         losses2[n] = NaN
         @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
     end
-
-    @test EarlyStopping.needs_loss(InvalidValue())
-    @test !EarlyStopping.needs_training_losses(InvalidValue())
 end
 
 struct SleepyIterator{T}
@@ -51,8 +46,6 @@ Base.iterate(iter::SleepyIterator, state) =
     @test stopping_time(TimeLimit(t=Millisecond(600)), sleepy_losses) == 7
     # codecov:
     @test EarlyStopping.update_training(TimeLimit(), 42.0) <= now()
-    @test !EarlyStopping.needs_loss(TimeLimit())
-    @test !EarlyStopping.needs_training_losses(TimeLimit())
 end
 
 @testset "GL" begin
@@ -74,9 +67,6 @@ end
     @test stopping_time(GL(alpha=90), losses) == 11
     @test stopping_time(GL(alpha=110), losses) == 12
     @test stopping_time(GL(alpha=1000), losses) == 0
-
-    @test EarlyStopping.needs_loss(GL())
-    @test !EarlyStopping.needs_training_losses(GL())
 end
 
 @testset "PQ" begin
@@ -133,9 +123,6 @@ end
     @test stopping_time(PQ(alpha=11.6, k=2), losses2, is_training) == 6
     @test stopping_time(PQ(alpha=15.1, k=2), losses2, is_training) == 8
     @test stopping_time(PQ(alpha=15.3, k=2), losses2, is_training) == 0
-
-    @test EarlyStopping.needs_loss(PQ())
-    @test EarlyStopping.needs_training_losses(PQ())
 end
 
 @testset "Patience" begin
@@ -146,9 +133,6 @@ end
     @test stopping_time(Patience(n=3), losses) == 5
     @test stopping_time(Patience(n=2), losses) == 4
     @test stopping_time(Patience(n=1), losses) == 3
-
-    @test EarlyStopping.needs_loss(Patience())
-    @test !EarlyStopping.needs_training_losses(Patience())
 end
 
 @testset "NumberSinceBest" begin
@@ -163,9 +147,6 @@ end
     losses2 = Float64[10, 9, 8, 9, 10, 7, 10, 10, 10, 10]
     @test stopping_time(NumberSinceBest(n=2), losses2) == 5
     @test stopping_time(NumberSinceBest(n=3), losses2) == 9
-
-    @test EarlyStopping.needs_loss(NumberSinceBest())
-    @test !EarlyStopping.needs_training_losses(NumberSinceBest())
 end
 
 @testset "NumberLimit" begin
@@ -174,17 +155,11 @@ end
     for i in 1:length(losses)
         @test stopping_time(NumberLimit(i), losses) == i
     end
-
-    @test !EarlyStopping.needs_loss(NumberLimit())
-    @test !EarlyStopping.needs_training_losses(NumberLimit())
-
 end
 
 @testset "Threshold" begin
     @test Threshold().value == 0.0
     stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
-    @test EarlyStopping.needs_loss(Threshold())
-    @test !EarlyStopping.needs_training_losses(Threshold())
 end
 
 @testset "robustness to first loss being a training loss" begin
@@ -253,9 +228,6 @@ end
         losses2 = copy(losses); losses2[n] = NaN
         @test stopping_time(criterion, losses2, is_training) == sum(!, is_training[1:n])
     end
-
-    @test EarlyStopping.needs_loss(criterion)
-    @test !EarlyStopping.needs_training_losses(criterion)
 end
 
 
