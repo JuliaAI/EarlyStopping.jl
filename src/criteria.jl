@@ -41,9 +41,14 @@ $CUSTOM_ALTERNATIVE_DOC
 """
 struct InvalidValue <: StoppingCriterion end
 
+_isinf(x) = isinf(x)
+_isinf(::Nothing) = false
+_isnan(x) = isnan(x)
+_isnan(::Nothing) = false
+
 # state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
 update(::InvalidValue, loss, state=false) =
-    state !== nothing && state || isinf(loss) || isnan(loss)
+    state !== nothing && state || _isinf(loss) || _isnan(loss)
 update_training(c::InvalidValue, loss, state) = update(c, loss, state)
 done(::InvalidValue, state) = state !== nothing && state
 
