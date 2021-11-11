@@ -50,8 +50,6 @@ done(::InvalidValue, state) = state !== nothing && state
 message(::InvalidValue, state) = "Stopping early as `NaN`, "*
     "`Inf` or `-Inf` encountered. "
 
-needs_loss(::Type{<:InvalidValue}) = true
-
 
 ## TIME LIMIT
 
@@ -134,7 +132,6 @@ function done(criterion::GL, state)
         return  gl > criterion.alpha
     end
 end
-needs_loss(::Type{<:GL}) = true
 
 
 ## PQ
@@ -244,9 +241,6 @@ function done(criterion::PQ, state)
     return  PQ > criterion.alpha
 end
 
-needs_loss(::Type{<:PQ}) = true
-needs_training_losses(::Type{<:PQ}) = true
-
 
 ## PATIENCE
 
@@ -291,8 +285,6 @@ end
 done(criterion::Patience, state) =
     state === nothing ? false : state.n_increases == criterion.n
 
-needs_loss(::Type{<:Patience}) = true
-
 
 ## NUMBER SINCE BEST
 
@@ -331,8 +323,6 @@ end
 
 done(criterion::NumberSinceBest, state) =
     state === nothing ? false : state.number_since_best == criterion.n
-
-needs_loss(::Type{<:NumberSinceBest}) = true
 
 
 # # NUMBER LIMIT
@@ -386,8 +376,6 @@ update(::Threshold, loss, state) = loss
 done(criterion::Threshold, state) =
     state === nothing ? false : state < criterion.value
 
-needs_loss(::Type{<:Threshold}) = true
-
 
 """
     Warmup(c::StoppingCriterion, n)
@@ -417,9 +405,8 @@ update_training(c::Warmup, loss) = (1, update_training(c.criterion, loss))
 
 # Handle update vs update_training
 update(c::Warmup, loss, state) = _update(update, c, loss, state)
-update_training(c::Warmup, loss, state) = _update(update_training, c, loss, state)
-needs_loss(::Type{<:Warmup{C}}) where C = needs_loss(C)
-needs_training_losses(::Type{<:Warmup{C}}) where C = needs_training_losses(C)
+update_training(c::Warmup, loss, state) =
+    _update(update_training, c, loss, state)
 
 # Dispatch update and update_training here
 function _update(f::Function, criterion::Warmup, loss, state)
@@ -474,7 +461,3 @@ update_training(c::NotANumber, loss, state) = update(c, loss, state)
 done(::NotANumber, state) = state !== nothing && state
 
 message(::NotANumber, state) = "Stopping early as NaN encountered. "
-
-needs_loss(::Type{<:NotANumber}) = true
-
-
