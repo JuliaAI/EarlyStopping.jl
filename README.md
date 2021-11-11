@@ -177,7 +177,6 @@ To implement a new stopping criterion, one must:
 - Overload methods `update` and `done` for the new type.
 
 ```julia
-
 struct NewCriteria <: StoppingCriterion
     # Put relevant fields here
 end
@@ -196,7 +195,6 @@ update(c::NewCriteria, loss, state) = ...
 # Return true if NewCriteria should stop given `state`.
 # Always return false if `state === nothing`
 done(c::NewCriteria, state) = state === nothing ? false : ....
-
 ```
 
 Optionally, one may define the following:
@@ -206,20 +204,18 @@ Optionally, one may define the following:
   `needs_training_losses`.
 
 ```julia
-
 # Final message when NewCriteria triggers a stop
 message(c::NewCriteria, state) = ...
 
 # Methods for initializing/updating the state given a training loss
 update_training(c::NewCriteria, loss, ::Nothing) = ...
 update_training(c::NewCriteria, loss, state) = ...
-
-# Define `needs_training_losses` iff NewCriteria needs one or more
-# training losses per out-of-sample loss to work. Otherwise, this may be
-# omitted
-needs_training_losses(::Type{<:NewCriteria}) = true
-
 ```
+
+**Wrappers.** If your criterion wraps another criterion (as `Warmup`
+does) then the `criterion` must be a field and must store the
+criterion being wrapped.
+
 
 ## New Criteria Example
 

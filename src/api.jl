@@ -12,10 +12,3 @@ done(::StoppingCriterion, state) = false
 
 message(criterion::StoppingCriterion, state) = "Stop triggered by "*
     "$criterion stopping criterion. "
-
-needs_loss(::Type) = false
-needs_training_losses(::Type) = false
-
-for trait in [:needs_loss, :needs_training_losses]
-    eval(:($trait(c) = $trait(typeof(c))))
-end
