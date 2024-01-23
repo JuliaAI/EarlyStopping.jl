@@ -1,4 +1,4 @@
-module EarlyStopping
+module EarlyStopping 
 
 using Dates
 using Statistics
