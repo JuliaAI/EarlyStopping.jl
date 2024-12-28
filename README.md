@@ -80,19 +80,19 @@ subtype `T` has a detailed doc-string queried with `?T` at the
 REPL. Here is a short summary:
 
 
-criterion             | description                                           | notation in Prechelt
-----------------------|-------------------------------------------------------|---------------------
-`Never()`             | Never stop                                            |
-`InvalidValue()`      | Stop when `NaN`, `Inf` or `-Inf` encountered          |
-`TimeLimit(t=0.5)`    | Stop after `t` hours                                  |
-`NumberLimit(n=100)`  | Stop after `n` loss updates (excl. "training losses") |
-`NumberSinceBest(n=6)`| Stop after `n` loss updates (excl. "training losses") |
-`Threshold(value=0.0)`| Stop when `loss < value`                              |
-`GL(alpha=2.0)`       | Stop after "Generalization Loss" exceeds `alpha`      | ``GL_α``
-`PQ(alpha=0.75, k=5)` | Stop after "Progress-modified GL" exceeds `alpha`     | ``PQ_α``
-`Patience(n=5)`       | Stop after `n` consecutive loss increases             | ``UP_s``
-`Disjunction(c...)`   | Stop when any of the criteria `c` apply               |
-`Warmup(c; n=1)`      | Wait for `n` loss updates before checking criteria `c`|
+| criterion              | description                                                                         | notation in Prechelt |
+|:-----------------------|:------------------------------------------------------------------------------------|:---------------------|
+| `Never()`              | Never stop                                                                          |                      |
+| `InvalidValue()`       | Stop when `NaN`, `Inf` or `-Inf` encountered                                        |                      |
+| `TimeLimit(t=0.5)`     | Stop after `t` hours                                                                |                      |
+| `NumberLimit(n=100)`   | Stop after `n` loss updates (excl. "training losses")                               |                      |
+| `NumberSinceBest(n=6)` | Stop when best loss occurred on the `n`th previous update (excl. "training losses") |                      |
+| `Threshold(value=0.0)` | Stop when `loss < value`                                                            |                      |
+| `GL(alpha=2.0)`        | Stop after "Generalization Loss" exceeds `alpha`                                    | ``GL_α``             |
+| `PQ(alpha=0.75, k=5)`  | Stop after "Progress-modified GL" exceeds `alpha`                                   | ``PQ_α``             |
+| `Patience(n=5)`        | Stop after `n` consecutive loss increases                                           | ``UP_s``             |
+| `Disjunction(c...)`    | Stop when any of the criteria `c` apply                                             |                      |
+| `Warmup(c; n=1)`       | Wait for `n` loss updates before checking criteria `c`                              |                      |
 
 
 ## Criteria tracking both training and out-of-sample losses
