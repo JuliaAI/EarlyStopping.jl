@@ -3,12 +3,12 @@
     EarlyStopper(c...; verbosity=0)
 
 Instantiate an object for tracking whether one or more stopping
-criterion `c` apply, given a sequence of losses.
+criteria `c` apply, given a sequence of losses.
 
 For a list of possible criterion, do
 `subtypes(EarlyStopping.StoppingCriterion)`.
 
-### Sample usage
+# Sample usage
 
     stopper = EarlyStopper(Patience(1), NotANumber())
     done!(stopper, 0.123) # false
@@ -17,7 +17,7 @@ For a list of possible criterion, do
     julia> message(stopper)
     "Early stop triggered by Patience(1) stopping criterion. "
 
-### Training losses
+# Training losses
 
 For criteria tracking both an "out-of-sample" loss and a "training"
 loss (eg, stopping criterion of type `PQ`), specify `training=true` if
@@ -26,8 +26,6 @@ the update is for training, as in
     done!(stopper, 0.123; training=true)
 
 Zero or more training updates may precede each out-of-sample update.
-
-The state of the stopper can be reset or restored to a prior state using `reset!`
 
 """
 mutable struct EarlyStopper{S}
@@ -57,19 +55,22 @@ function done!(stopper::EarlyStopper, loss; training=false)
     else
         stopper.state = update(stopper, loss)
     end
-    if stopper.verbosity > 0
-        suffix = training ? "training " : ""
-        loss_str = suffix*"loss"
-        @info "$loss_str: $loss\t state: $(stopper.state)"
-    end
+    stopper.verbosity ≥ 1 &&
+        @info "$(EarlyStopping.public_state(stopper.criterion, stopper.state))"
+    stopper.verbosity ≥ 0 && done(stopper) && @info message(stopper)
     return done(stopper)
 end
 
 """
     reset!(stopper::EarlyStopper)
-    reset!(stopper::EarlyStopper, state)
 
-Reset a stopper to it's uninitialized state or to a particular state
+Reset a stopper to it's uninitialized state.
+
 """
 reset!(stopper::EarlyStopper) = stopper.state = nothing
-reset!(stopper::EarlyStopper, state) = stopper.state = state
+reset!(stopper::EarlyStopper, state) = error(
+    "Use `reset!(stopper)` to reset `stopper` to a fresh state. The method "*
+        "`reset!(stopper, new_state)` is no-longer supported. If you need fine control "*
+        "over internal state, use "*
+        "use EarlyStopping.jl's functional-style API. "
+)

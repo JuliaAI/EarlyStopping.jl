@@ -44,4 +44,4 @@ stopping_time(criterion, losses; kwargs...) =
     stopping_time(criterion, losses, Iterators.repeated(false); kwargs...)
 
 stopping_time(c::StoppingCriterion, args...; kwargs...) =
-    stopping_time(EarlyStopper(c), args...; kwargs...)
+    stopping_time(EarlyStopper(c, verbosity=-1), args...; kwargs...)
