@@ -34,6 +34,7 @@ stopper = EarlyStopper(PQ(alpha=3.8, k=2), InvalidValue())
 state = stopper.state
 reset!(stopper)
 @test !EarlyStopping.done(stopper)
+@test_throws Exception reset!(stopper, state)
 
 # verbose case:
 stopper = EarlyStopper(Threshold(0.1), verbosity=1)
