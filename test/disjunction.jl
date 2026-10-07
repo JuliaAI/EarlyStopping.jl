@@ -30,11 +30,18 @@ end
 @testset "message" begin
     state = EarlyStopping.update(d, NaN)
     @test EarlyStopping.message(d, state) ==
-        "Stopping early as `NaN`, "*
-        "`Inf` or `-Inf` encountered. "
+        "Stopping early as `NaN` encountered. "
 end
 
 state = EarlyStopping.update(d, 1.0)
 state = EarlyStopping.update(d, 2.0, state)
 @test EarlyStopping.message(d, state) ==
     "Stop triggered by Patience(1) stopping criterion. "
+
+pub = EarlyStopping.public_state(d, state)
+@test length(pub) == 3
+@test pub isa Vector
+@test pub[1] == (loss = 2.0, n_increases = 1)
+@test pub[2] == (encountered = nothing,)
+sleep(0.01)
+@test pub[3].time < now()
