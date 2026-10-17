@@ -28,20 +28,23 @@ stopper = EarlyStopper(PQ(alpha=3.8, k=2), InvalidValue())
 @test !done!(stopper, losses2[15], training=true)
 @test done!(stopper, losses2[16])
 
+@test startswith(message(stopper), "Stop triggered by PQ")
+
 # Test reset
 state = stopper.state
 reset!(stopper)
 @test !EarlyStopping.done(stopper)
-reset!(stopper, state)
-@test EarlyStopping.done(stopper)
-
-message(stopper) == "Early stop triggered by "*
-    "PQ(3.8, 2, 2.220446049250313e-16) stopping criterio
-n. "
+@test_throws Exception reset!(stopper, state)
 
 # verbose case:
-stopper = EarlyStopper(InvalidValue(), verbosity=1)
+stopper = EarlyStopper(Threshold(0.1), verbosity=1)
+@test_logs (:info, r"\(loss = 1.5, excess = 1.4\)") done!(stopper, 1.5)
+stopper = EarlyStopper(NumberLimit(1))
+@test_logs(
+    (:info, "Stop triggered by NumberLimit(1) stopping criterion. "),
+    done!(stopper, 1.5),
+)
+stopper = EarlyStopper(NumberLimit(1), verbosity=-1)
+@test_logs done!(stopper, 1.5)
 
-@test_logs (:info, r"training loss: 1.0") done!(stopper, 1.0, training=true)
-@test_logs (:info, r"loss: 2.0")  done!(stopper, 2.0)
-
+true

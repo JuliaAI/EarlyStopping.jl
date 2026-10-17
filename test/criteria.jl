@@ -1,10 +1,14 @@
+using EarlyStopping, Dates, Test, InteractiveUtils
+
 losses = Float64[10, 8, 9, 10, 11, 12, 12, 13, 14, 15, 16, 17, 16]
 
 # codecov:
 @test EarlyStopping._min(nothing, 5) == 5
 
 @testset "Never" begin
-    @test stopping_time(Never(), losses) == 0
+    state = stopping_time(Never(), losses)
+    @test state == 0
+    @test EarlyStopping.public_state(Never(), state) == (;)
 end
 
 @testset "InvalidValue" begin
@@ -26,6 +30,12 @@ end
         losses2[n] = NaN
         @test stopping_time(InvalidValue(), losses2, is_training) == n_stop
     end
+
+    # public state:
+    state = EarlyStopping.update(InvalidValue(), 1.2)
+    @test EarlyStopping.public_state(InvalidValue(), state) == (; encountered=nothing)
+    state = EarlyStopping.update(InvalidValue(), NaN)
+    @test isnan(EarlyStopping.public_state(InvalidValue(), state).encountered)
 end
 
 struct SleepyIterator{T}
@@ -46,6 +56,10 @@ Base.iterate(iter::SleepyIterator, state) =
     @test stopping_time(TimeLimit(t=Millisecond(600)), sleepy_losses) == 7
     # codecov:
     @test EarlyStopping.update_training(TimeLimit(), 42.0) <= now()
+
+    state = EarlyStopping.update(TimeLimit(), 42.0)
+    sleep(0.001)
+    @test EarlyStopping.public_state(TimeLimit(), state).time < now()
 end
 
 @testset "GL" begin
@@ -55,11 +69,11 @@ end
 
     # stopping times:
     n = @test_logs((:info, r"loss updates: 1"),
-                   (:info, r"state: \(loss = 10.0, min_loss = 10.0\)"),
+                   (:info, r"state: \(loss = 10.0, min_loss = 10.0, GL = 0.0\)"),
                    (:info, r"loss updates: 2"),
-                   (:info, r"state: \(loss = 8.0, min_loss = 8.0\)"),
+                   (:info, r"state: \(loss = 8.0, min_loss = 8.0, GL = 0.0\)"),
                    (:info, r"loss updates: 3"),
-                   (:info, r"state: \(loss = 9.0, min_loss = 8.0\)"),
+                   (:info, r"state: \(loss = 9.0, min_loss = 8.0, GL = 12.5\)"),
                    stopping_time(GL(alpha=12), losses, verbosity=1))
     @test n == 3
     @test stopping_time(GL(alpha=20), losses) == 4
@@ -67,6 +81,10 @@ end
     @test stopping_time(GL(alpha=90), losses) == 11
     @test stopping_time(GL(alpha=110), losses) == 12
     @test stopping_time(GL(alpha=1000), losses) == 0
+
+    state = EarlyStopping.update(GL(), 0.123)
+    @test EarlyStopping.public_state(GL(), state) ==
+        (loss = 0.123, min_loss = 0.123, GL = 0.0)
 end
 
 @testset "PQ" begin
@@ -91,7 +109,7 @@ end
     @test !EarlyStopping.done(c, state)
 
     #                 k=2                progress GL    PQ    t
-    losses2 = [9.5, 9.3, 10,            # 10.8     0     0     1
+    losses2 = [9.5, 9.3, 10,           # 10.8     0     0     1
               9.3, 9.1, 8.9, 8,        # 11.2     0     0     2
               8.3, 8.4, 9,             # 6.02     12.5  2.08  3
               9.9, 9.5, 10,            # 21.2     25.0  1.18  4
@@ -123,6 +141,20 @@ end
     @test stopping_time(PQ(alpha=11.6, k=2), losses2, is_training) == 6
     @test stopping_time(PQ(alpha=15.1, k=2), losses2, is_training) == 8
     @test stopping_time(PQ(alpha=15.3, k=2), losses2, is_training) == 0
+
+    # public state:
+    c = PQ(alpha=2.0, k=2)
+    state = EarlyStopping.update_training(c, losses2[1])
+    for (loss, is_training) in zip(losses2[2:end], is_training[2:end])
+        if is_training
+            state = EarlyStopping.update_training(c, loss, state)
+        else
+            state =  EarlyStopping.update(c, loss, state)
+        end
+    end
+    pub = EarlyStopping.public_state(c, state)
+    @test all(values(pub) .≈ (16.0, 10.300000000000004, 9.708737864077666, 10.3, 2))
+    @test keys(pub) == (:loss, :PQ, :progress, :latest_training_loss, :num_training_losses)
 end
 
 @testset "Patience" begin
@@ -133,6 +165,10 @@ end
     @test stopping_time(Patience(n=3), losses) == 5
     @test stopping_time(Patience(n=2), losses) == 4
     @test stopping_time(Patience(n=1), losses) == 3
+
+    state = EarlyStopping.update(Patience(), 0.123)
+    @test EarlyStopping.public_state(Patience(), state) ==
+        (loss = 0.123, n_increases = 0)
 end
 
 @testset "NumberSinceBest" begin
@@ -147,6 +183,10 @@ end
     losses2 = Float64[10, 9, 8, 9, 10, 7, 10, 10, 10, 10]
     @test stopping_time(NumberSinceBest(n=2), losses2) == 5
     @test stopping_time(NumberSinceBest(n=3), losses2) == 9
+
+    state = EarlyStopping.update(NumberSinceBest(), 0.123)
+    @test EarlyStopping.public_state(NumberSinceBest(), state) ==
+       (best = 0.123, number_since_best = 0)
 end
 
 @testset "NumberLimit" begin
@@ -155,11 +195,18 @@ end
     for i in 1:length(losses)
         @test stopping_time(NumberLimit(i), losses) == i
     end
+
+    state = EarlyStopping.update(NumberLimit(), 0.123)
+    @test EarlyStopping.public_state(NumberLimit(), state) == (; number = 1)
 end
 
 @testset "Threshold" begin
     @test Threshold().value == 0.0
     stopping_time(Threshold(2.5), Float64[12, 32, 3, 2, 5, 7]) == 4
+
+    state = EarlyStopping.update(Threshold(0.01), 0.123)
+    @test EarlyStopping.public_state(Threshold(0.01), state) ==
+        (loss = 0.123, excess = 0.113)
 end
 
 @testset "robustness to first loss being a training loss" begin
@@ -208,7 +255,17 @@ end
         @test_criteria Warmup(NumberSinceBest())
         @test_criteria Warmup(Patience(3) + InvalidValue())
     end
+
+    c = Warmup(Threshold(10), n=2)
+    state = EarlyStopping.update(c, 9)
+    @test EarlyStopping.public_state(c, state) ==
+        (loss = 9, excess = -1.0, warm = false)
+    state = EarlyStopping.update(c, 8, state)
+    state = EarlyStopping.update(c, 7, state)
+    @test EarlyStopping.public_state(c, state) ==
+        (loss = 7, excess = -3.0, warm = true)
 end
+
 
 
 # # DEPRECATED
