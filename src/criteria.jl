@@ -6,9 +6,11 @@ const PRECHELT_REF = "[Prechelt, Lutz (1998): \"Early Stopping"*
 const STOPPING_DOC = "An early stopping criterion for loss-reporting "*
     "iterative algorithms. "
 
-const CUSTOM_ALTERNATIVE_DOC = "For a customizable loss-based stopping "*
-    "criterion, use [`WithLossDo`](@ref) or [`WithTrainingLossesDo`](@ref) "*
-    "with the `stop_if_true=true` option. "
+const CUSTOM_ALTERNATIVE_DOC = "If using IterationControl.jl, see also the "*
+    "cusstomizable loss-based stopping "*
+    "criterion, `WithLossDo` and "*
+    "WithTrainingLossesDo`, "*
+    "which have an `stop_if_true` option. "
 
 
 ## NEVER
