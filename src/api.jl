@@ -11,7 +11,7 @@ update_training(::StoppingCriterion, loss, state=nothing) = state
 done(criterion, state) = false
 
 """
-    public_state(criterion, state)
+    EarlyStopping.public_state(criterion, state)
 
 Transform the `state` associated with some stopping `criterion` (or other control from
 IterationControl.jl) into a user-inspectable form. This form is stable, while `state` is

@@ -439,7 +439,7 @@ done(criterion::Threshold, state) =
 """
     Warmup(c::StoppingCriterion, n)
 
-Wait for `n` updates before checking stopping criterion `c`
+Wait for `n` updates before checking stopping criterion `c` for the first time.
 """
 struct Warmup{C} <: StoppingCriterion where {C <: StoppingCriterion}
     criterion::C
