@@ -35,7 +35,7 @@ mutable struct EarlyStopper{S}
     EarlyStopper(criterion::S; verbosity=0) where S =
         new{S}(criterion, verbosity, nothing)
 end
-EarlyStopper(criteria...; kwargs...) = EarlyStopper(sum(criteria); kwargs...)
+EarlyStopper(criteria...; kwargs...) = EarlyStopper(Disjunction(criteria...); kwargs...)
 
 # Dispatch message, done, update and update_training to wrapped criterion
 for f in [:message, :done]

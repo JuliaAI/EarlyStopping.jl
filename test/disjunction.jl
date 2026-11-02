@@ -4,14 +4,11 @@ c3 = TimeLimit(t=100)
 
 @test Disjunction(c1) == c1
 
-d = c1 + c2 + Never() + c3 + c1
-show(d)
+d = Disjunction(c1, c2, Never(), c3, c1)
+@test sprint(show, d) ==
+    "Disjunction(Patience(1), InvalidValue(), TimeLimit(Millisecond(360000000)))"
 
-# codecov:
-@test zero(typeof(c1)) == Never()
-
-@test sum(Disjunction[]) == Never()
-@test Never() in c1
+@test EarlyStopping.in(Never(), c1)
 
 @testset "_criteria" begin
     criteria = EarlyStopping._criteria(d)
@@ -20,11 +17,11 @@ show(d)
 end
 
 @testset "stoppping times" begin
-    d2 = Patience(3) + InvalidValue()
+    d2 = Disjunction(Patience(3), InvalidValue())
     @test stopping_time(d2, [12.0, 10.0, 11.0, 12.0, 13.0, NaN]) == 5
     @test stopping_time(d2, [NaN, 12.0, 10.0, 11.0, 12.0, 13.0]) == 1
-    @test_criteria NumberSinceBest() + PQ()
-    @test_criteria Patience(3) + InvalidValue()
+    @test_criteria Disjunction(NumberSinceBest(), PQ())
+    @test_criteria Disjunction(Patience(3),InvalidValue())
 end
 
 @testset "message" begin
