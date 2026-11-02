@@ -2,7 +2,7 @@
 
 | Linux | Coverage |
 | :-----------: | :------: |
-| [![Build status](https://github.com/JuliaAI/EarlyStopping.jl/workflows/CI/badge.svg)](https://github.com/JuliaAI/EarlyStopping.jl/actions)| [![codecov.io](http://codecov.io/github/JuliaAI/EarlyStopping.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaAI/EarlyStopping.jl?branch=master) |
+| [![codecov](https://codecov.io/gh/JuliaAI/EarlyStopping.jl/graph/badge.svg?token=XVTIN2S1DI)](https://codecov.io/gh/JuliaAI/EarlyStopping.jl)| [![codecov.io](http://codecov.io/github/JuliaAI/EarlyStopping.jl/coverage.svg?branch=master)](http://codecov.io/github/JuliaAI/EarlyStopping.jl?branch=master) |
 
 A small package for applying early stopping criteria to
 loss-generating iterative algorithms, with a view

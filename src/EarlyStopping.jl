@@ -1,4 +1,4 @@
-module EarlyStopping 
+module EarlyStopping
 
 using Dates
 using Statistics
@@ -18,7 +18,6 @@ export StoppingCriterion,
     Threshold,
     Disjunction,
     Warmup,
-    criteria,
     stopping_time,
     EarlyStopper,
     done!,
