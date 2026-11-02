@@ -204,12 +204,12 @@ Optionally, one may define the following:
   `needs_training_losses`.
 
 ```julia
-# Final message when NewCriteria triggers a stop
-message(c::NewCriteria, state) = ...
+# Final message when NewCriterion triggers a stop
+message(c::NewCriterion, state) = ...
 
 # Methods for initializing/updating the state given a training loss
-update_training(c::NewCriteria, loss, ::Nothing) = ...
-update_training(c::NewCriteria, loss, state) = ...
+update_training(c::NewCriterion, loss, ::Nothing) = ...
+update_training(c::NewCriterion, loss, state) = ...
 ```
 
 **Wrappers.** If your criterion wraps another criterion (as `Warmup`
@@ -240,8 +240,8 @@ All information to be "remembered" must passed around in an object
 called `state` below, which is the return value of `update` (and
 `update_training`). The `update` function has two methods:
 
-- Initialization: `update(c::NewCriteria, loss, ::Nothing)`
-- Subsequent Loss Updates: `update(c::NewCriteria, loss, state)`
+- Initialization: `update(c::NewCriterion, loss, ::Nothing)`
+- Subsequent Loss Updates: `update(c::NewCriterion, loss, state)`
 
 Where `state` is the return of the previous call to `update` or `update_training`.
 Notice, that `state === nothing` indicates an uninitialized criteria.
@@ -303,6 +303,6 @@ The following are provided to facilitate testing of new criteria:
 
 - `stopping_time`: returns the stopping time for an iterator
   `losses` using `criterion`.
-- [`@test_criteria NewCriteria()`](./test/smoke.jl): Runs a suite of unit tests
+- [`@test_criterion NewCriterion()`](./test/smoke.jl): Runs a suite of unit tests
   against the provided `StoppingCriteria`. This macro is only part of the
   test suite and is not part of the API.
