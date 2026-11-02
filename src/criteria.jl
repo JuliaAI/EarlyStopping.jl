@@ -495,33 +495,3 @@ function done(criterion::Warmup, state)
 end
 
 message(c::Warmup, state) = message(c.criterion, state[2])
-
-
-## NOT A NUMBER (deprecated)
-
-"""
-    NotANumber()
-
-$STOPPING_DOC
-
-Stop if a loss of `NaN` is encountered.
-
-**Now deprecated** in favour of [`InvalidValue`](@ref).
-
-"""
-struct NotANumber <: StoppingCriterion
-    function NotANumber()
-        Base.depwarn("`NotANumber()` is deprecated. Use `InvalidValue()` "*
-                     "to trap `NaN`, `Inf` or `-Inf`. ", :NotANumber)
-        return new()
-    end
-end
-
-
-# state = `true` when NaN has been encountered
-update(::NotANumber, loss, state) = state !== nothing && state || isnan(loss)
-update_training(c::NotANumber, loss, state) = update(c, loss, state)
-
-done(::NotANumber, state) = state !== nothing && state
-
-message(::NotANumber, state) = "Stopping early as NaN encountered. "
