@@ -104,9 +104,3 @@ _message(d::Disjunction, state, old_message) =
 
 message(d::Disjunction, state) = _message(d, state, "")
 message(d::Disjunction, ::Nothing) = ""
-
-
-## SYNTACTIC SUGAR
-
-Base.zero(::Type{<:StoppingCriterion}) = Never()
-+(a::StoppingCriterion, b::StoppingCriterion...) = Disjunction(a, b...)
