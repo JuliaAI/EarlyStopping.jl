@@ -88,6 +88,8 @@ end
 end
 
 @testset "PQ" begin
+    # note that == for PQState is overloaded in test/smoke.jl
+    
     v = [:c, :b, :a]
     @test EarlyStopping.prepend(v, :d, 4) == [:d, :c, :b, :a]
     @test EarlyStopping.prepend(v, :d, 3) == [:d, :c, :b]
@@ -210,9 +212,7 @@ end
 end
 
 @testset "robustness to first loss being a training loss" begin
-    criteria = filter(subtypes(StoppingCriterion)) do C
-        C != NotANumber # as deprecated
-    end
+    criteria = subtypes(StoppingCriterion)
     for C in criteria
         losses = float.(4:-1:1)
         is_training = [true, true, false, false]
@@ -253,7 +253,7 @@ end
     @testset "integration" begin
         @test_criteria Warmup(Patience())
         @test_criteria Warmup(NumberSinceBest())
-        @test_criteria Warmup(Patience(3) + InvalidValue())
+        @test_criteria Warmup(Disjunction(Patience(3), InvalidValue()))
     end
 
     c = Warmup(Threshold(10), n=2)
@@ -265,27 +265,5 @@ end
     @test EarlyStopping.public_state(c, state) ==
         (loss = 7, excess = -3.0, warm = true)
 end
-
-
-
-# # DEPRECATED
-
-@testset "NotANumber" begin
-    @test_deprecated criterion = NotANumber()
-    @test stopping_time(criterion, losses) == 0
-    N = 5
-    losses2 = fill(123.4, N)
-    @test all(reverse(eachindex(losses2))) do j
-        losses2[j] = NaN
-        stopping_time(criterion, losses2) == j
-    end
-    is_training = map(x -> x%3 > 0, 1:length(losses))
-    @test stopping_time(criterion, losses, is_training) == 0
-    for n = 1:2:length(losses)
-        losses2 = copy(losses); losses2[n] = NaN
-        @test stopping_time(criterion, losses2, is_training) == sum(!, is_training[1:n])
-    end
-end
-
 
 true
