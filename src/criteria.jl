@@ -6,9 +6,11 @@ const PRECHELT_REF = "[Prechelt, Lutz (1998): \"Early Stopping"*
 const STOPPING_DOC = "An early stopping criterion for loss-reporting "*
     "iterative algorithms. "
 
-const CUSTOM_ALTERNATIVE_DOC = "For a customizable loss-based stopping "*
-    "criterion, use [`WithLossDo`](@ref) or [`WithTrainingLossesDo`](@ref) "*
-    "with the `stop_if_true=true` option. "
+const CUSTOM_ALTERNATIVE_DOC = "If using IterationControl.jl, see also the "*
+    "cusstomizable loss-based stopping "*
+    "criterion, `WithLossDo` and "*
+    "WithTrainingLossesDo`, "*
+    "which have an `stop_if_true` option. "
 
 
 ## NEVER
@@ -24,9 +26,10 @@ See also [`NotANumber`](@ref), for stopping on encountering `NaN`.
 
 """
 struct Never <: StoppingCriterion end
+public_state(::Never, state) = (;)
 
 
-## OUT OF BOUNDS
+## INVALID VALUE
 
 """
     InvalidValue()
@@ -46,14 +49,19 @@ _isinf(::Nothing) = false
 _isnan(x) = isnan(x)
 _isnan(::Nothing) = false
 
-# state = `true` when `NaN`, `Inf` or `-Inf` has been encountered
-update(::InvalidValue, loss, state=false) =
-    state !== nothing && state || _isinf(loss) || _isnan(loss)
+# state = `nothing` unless `NaN`, `Inf` or `-Inf` has been encountered, in which case it
+# is the invalid value encountered.
+function update(::InvalidValue, loss, state=nothing)
+    if  _isinf(loss) || _isnan(loss)
+        return loss
+    else
+        return nothing
+    end
+end
 update_training(c::InvalidValue, loss, state) = update(c, loss, state)
-done(::InvalidValue, state) = state !== nothing && state
-
-message(::InvalidValue, state) = "Stopping early as `NaN`, "*
-    "`Inf` or `-Inf` encountered. "
+public_state(::InvalidValue, state) = (; encountered=state)
+done(::InvalidValue, state) = !isnothing(state)
+message(::InvalidValue, state) = "Stopping early as `$state` encountered. "
 
 
 ## TIME LIMIT
@@ -70,7 +78,7 @@ Any Julia built-in `Real` type can be used for `t`. Subtypes of
 `Period` may also be used, as in `TimeLimit(t=Minute(30))`.
 
 Internally, `t` is rounded to nearest millisecond.
-``
+
 """
 struct TimeLimit <: StoppingCriterion
     t::Millisecond
@@ -88,6 +96,7 @@ TimeLimit(; t =Minute(30)) = TimeLimit(t)
 # state = time at initialization
 update(::TimeLimit, loss, ::Nothing) = now()
 update_training(::TimeLimit, loss, ::Nothing) = now()
+public_state(::TimeLimit, state) = (; time=state)
 done(criterion::TimeLimit, state) =
     state === nothing ? false : criterion.t < now() - state
 
@@ -97,6 +106,7 @@ done(criterion::TimeLimit, state) =
 # helper:
 
 generalization_loss(E, E_opt) =  100*(E/abs(E_opt) - one(E_opt))
+generalization_loss(E, E_opt::Nothing) =  nothing
 
 """
     GL(; alpha=2.0)
@@ -127,15 +137,19 @@ struct GL <: StoppingCriterion
     end
 end
 GL(; alpha=2.0) = GL(alpha)
-update(::GL, loss, ::Nothing) = (loss=loss, min_loss=loss)
-update(::GL, loss, state) = (loss=loss, min_loss=min(loss, state.min_loss))
+update(::GL, loss, ::Nothing) = (
+    loss=loss,
+    min_loss=loss,
+    GL=generalization_loss(loss, loss),
+)
+function update(::GL, loss, state)
+    min_loss=min(loss, state.min_loss)
+    GL = generalization_loss(loss, min_loss)
+    return (; loss, min_loss, GL)
+end
 function done(criterion::GL, state)
-    if state === nothing
-        return false
-    else
-        gl = generalization_loss(state.loss, state.min_loss)
-        return  gl > criterion.alpha
-    end
+    isnothing(state) &&  return false
+    return state.GL > criterion.alpha
 end
 
 
@@ -219,31 +233,70 @@ struct PQState{T}
     waiting_for_out_of_sample::Bool
     loss::Union{Nothing,T}
     min_loss::Union{Nothing,T}
+    GL::Union{Nothing,T}
+    P::Union{Nothing,T}
+    PQ::Union{Nothing,T}
 end
 
-update_training(::PQ, loss, ::Nothing) = PQState([loss, ], true, nothing, nothing)
-update(::PQ, loss::T, ::Nothing) where T = PQState(T[], false, loss, loss)
+function update_training(::PQ, loss, ::Nothing)
+    return PQState([loss, ], true, nothing, nothing, nothing, nothing, nothing)
+end
+update(::PQ, loss::T, ::Nothing) where T = PQState(
+    T[],
+    false,
+    loss,
+    loss,
+    generalization_loss(loss, loss),
+    nothing,
+    nothing,
+)
 
 function update_training(criterion::PQ, loss, state)
     training_losses = prepend(state.training_losses, loss, criterion.k)
-    return PQState(training_losses, true, state.loss, state.min_loss)
+    GL = generalization_loss(state.loss, state.min_loss)
+    P = progress(training_losses)
+    PQ = isnothing(GL) ? nothing : GL/P
+    return PQState(
+        training_losses,
+        true,
+        state.loss,
+        state.min_loss,
+        GL,
+        P,
+        PQ,
+    )
 end
 
 function update(::PQ, loss, state)
     min_loss = _min(loss, state.min_loss)
-    return PQState(state.training_losses, false, loss, min_loss)
+    GL = generalization_loss(loss, min_loss)
+    P = progress(state.training_losses)
+    PQ = GL/P
+    return PQState(
+        state.training_losses,
+        false,
+        loss,
+        min_loss,
+        GL,
+        P,
+        PQ,
+    )
 end
-
+_first(container) = isempty(container) ? nothing : first(container)
+public_state(::PQ, state) = (
+    ; loss=state.loss,
+    PQ=state.PQ,
+    progress=state.P,
+    latest_training_loss = _first(state.training_losses),
+    num_training_losses=length(state.training_losses),
+)
 function done(criterion::PQ, state)
     state === nothing && return false
     state.loss === nothing && return false
     state.waiting_for_out_of_sample && return false
     length(state.training_losses) < criterion.k && return false
-    GL = generalization_loss(state.loss, state.min_loss)
-    P = progress(state.training_losses)
-    P > criterion.tol || return true
-    PQ = GL/P
-    return  PQ > criterion.alpha
+    state.P > criterion.tol || return true
+    return  state.PQ > criterion.alpha
 end
 
 
@@ -286,7 +339,6 @@ update(::Patience, loss, ::Nothing) = (loss=loss, n_increases=0)
     end
     return (loss=loss, n_increases=n)
 end
-
 done(criterion::Patience, state) =
     state === nothing ? false : state.n_increases == criterion.n
 
@@ -356,6 +408,7 @@ NumberLimit(; n=100) = NumberLimit(n)
 
 update(criterion::NumberLimit, loss, ::Nothing) = 1
 update(::NumberLimit, loss, state) = state+1
+public_state(::NumberLimit, state) = (; number=state)
 done(criterion::NumberLimit, state) =
     state === nothing ? false : state >= criterion.n
 
@@ -378,6 +431,7 @@ end
 Threshold(; value=0.0) = Threshold(value)
 
 update(::Threshold, loss, state) = loss
+public_state(criterion::Threshold, state) = (; loss=state, excess=state - criterion.value)
 done(criterion::Threshold, state) =
     state === nothing ? false : state < criterion.value
 
@@ -385,7 +439,7 @@ done(criterion::Threshold, state) =
 """
     Warmup(c::StoppingCriterion, n)
 
-Wait for `n` updates before checking stopping criterion `c`
+Wait for `n` updates before checking stopping criterion `c` for the first time.
 """
 struct Warmup{C} <: StoppingCriterion where {C <: StoppingCriterion}
     criterion::C
@@ -420,7 +474,7 @@ function _update(f::Function, criterion::Warmup, loss, state)
     if n <= criterion.n
         # Skip inner criterion
         return n, inner
-    elseif n == criterion.n+1
+    elseif n == criterion.n + 1
         # First step of inner criterion
         return n, f(criterion.criterion, loss)
     else
@@ -428,7 +482,12 @@ function _update(f::Function, criterion::Warmup, loss, state)
         return n, f(criterion.criterion, loss, inner)
     end
 end
-
+# public state is atomic (inner) public state with extra warm::Bool field.
+function public_state(criterion::Warmup, state)
+    n, inner = state
+    warm = n == criterion.n + 1
+    return (; public_state(criterion.criterion, inner)..., warm)
+end
 function done(criterion::Warmup, state)
     # Only check if inner criterion is done after n updates
     state === nothing && return false

@@ -35,6 +35,21 @@ for f in [:update, :update_training]
 end
 
 
+# # RECURSION TO FLATTEN A CONTROL OR ITS STATE
+
+flat(state) = (state,)
+flat(state::NamedTuple{(:a,:b)}) = tuple(flat(state.a)..., flat(state.b)...)
+flat(d::Disjunction) = tuple(flat(d.a)..., flat(d.b)...)
+
+function public_state(d::Disjunction, state)
+    cs = flat(d)
+    states = flat(state)
+    map(zip(cs, states)) do (c, s)
+        public_state(c, s)
+    end
+end
+
+
 ## RECURSION TO EXTRACT COMPONENTS AND TEST MEMBERSHIP
 
 # fallback for atomic criteria:
@@ -88,10 +103,10 @@ _message(d::Disjunction, state, old_message) =
              _message(d.b, state.b, old_message))
 
 message(d::Disjunction, state) = _message(d, state, "")
+message(d::Disjunction, ::Nothing) = ""
 
 
 ## SYNTACTIC SUGAR
 
 Base.zero(::Type{<:StoppingCriterion}) = Never()
 +(a::StoppingCriterion, b::StoppingCriterion...) = Disjunction(a, b...)
-
