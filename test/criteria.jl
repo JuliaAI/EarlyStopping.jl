@@ -89,10 +89,10 @@ end
 
 @testset "PQ" begin
     # note that == for PQState is overloaded in test/smoke.jl
-    
-    v = [:c, :b, :a]
-    @test EarlyStopping.prepend(v, :d, 4) == [:d, :c, :b, :a]
-    @test EarlyStopping.prepend(v, :d, 3) == [:d, :c, :b]
+
+    v = [3.3, 2.2, 1.1]
+    @test EarlyStopping.prepend(v, 4.4, 4) == [4.4, 3.3, 2.2, 1.1]
+    @test EarlyStopping.prepend(v, 4.4, 3) == [4.4, 3.3, 2.2]
     @test EarlyStopping.progress(Float64[2, 3, 6, 7]) ≈ 1000*(4.5 - 2)/2
     @test_throws ArgumentError PQ(alpha=0)
     @test_throws ArgumentError PQ(k=-Inf)

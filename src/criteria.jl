@@ -157,11 +157,11 @@ end
 
 # helpers:
 
-function prepend(v, x, max_length)
+function prepend(v::AbstractVector{T}, x, max_length) where T<:AbstractFloat
     if length(v) < max_length
-        vcat([x, ], v)
+        vcat(T[x, ], v)
     else
-        vcat([x, ], v[1:end-1])
+        vcat(T[x, ], v[1:end-1])
     end
 end
 
@@ -228,7 +228,7 @@ struct PQ <: StoppingCriterion
 end
 PQ(; alpha=0.75, k=5, tol=eps(Float64)) = PQ(alpha, k, tol)
 
-struct PQState{T}
+struct PQState{T<:AbstractFloat}
     training_losses::Vector{T}
     waiting_for_out_of_sample::Bool
     loss::Union{Nothing,T}
@@ -238,50 +238,54 @@ struct PQState{T}
     PQ::Union{Nothing,T}
 end
 
-function update_training(::PQ, loss, ::Nothing)
-    return PQState([loss, ], true, nothing, nothing, nothing, nothing, nothing)
+update_training(::PQ, loss, ::Nothing) =
+    PQState([float(loss), ], true, nothing, nothing, nothing, nothing, nothing)
+function update(::PQ, loss, ::Nothing)
+    float_loss = float(loss)
+    return PQState(
+        [float_loss][1:1], # empty vector with eltype of `float_loss`
+        false,
+        float_loss,
+        float_loss,
+        generalization_loss(float_loss, float_loss),
+        nothing,
+        nothing,
+    )
 end
-update(::PQ, loss::T, ::Nothing) where T = PQState(
-    T[],
-    false,
-    loss,
-    loss,
-    generalization_loss(loss, loss),
-    nothing,
-    nothing,
-)
-
-function update_training(criterion::PQ, loss, state)
-    training_losses = prepend(state.training_losses, loss, criterion.k)
+_convert(T, x::Nothing) = x
+_convert(T, x) = T(x)
+function update_training(criterion::PQ, loss, state::PQState{T}) where T
+    training_losses = prepend(state.training_losses, loss, criterion.k) # eltype T
     GL = generalization_loss(state.loss, state.min_loss)
     P = progress(training_losses)
     PQ = isnothing(GL) ? nothing : GL/P
     return PQState(
-        training_losses,
+        training_losses, # eltype T
         true,
-        state.loss,
-        state.min_loss,
-        GL,
-        P,
-        PQ,
+        _convert(T, state.loss),
+        _convert(T, state.min_loss),
+        _convert(T, GL),
+        _convert(T, P),
+        _convert(T, PQ),
     )
 end
 
-function update(::PQ, loss, state)
+function update(::PQ, loss, state::PQState{T}) where T
     min_loss = _min(loss, state.min_loss)
     GL = generalization_loss(loss, min_loss)
     P = progress(state.training_losses)
     PQ = GL/P
     return PQState(
-        state.training_losses,
+        state.training_losses, # eltype T
         false,
-        loss,
-        min_loss,
-        GL,
-        P,
-        PQ,
+        _convert(T, loss),
+        _convert(T, min_loss),
+        _convert(T, GL),
+        _convert(T, P),
+        _convert(T, PQ),
     )
 end
+
 _first(container) = isempty(container) ? nothing : first(container)
 public_state(::PQ, state) = (
     ; loss=state.loss,
