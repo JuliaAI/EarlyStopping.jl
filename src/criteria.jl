@@ -9,7 +9,7 @@ const STOPPING_DOC = "An early stopping criterion for loss-reporting "*
 const CUSTOM_ALTERNATIVE_DOC = "If using IterationControl.jl, see also the "*
     "cusstomizable loss-based stopping "*
     "criterion, `WithLossDo` and "*
-    "WithTrainingLossesDo`, "*
+    "`WithTrainingLossesDo`, "*
     "which have an `stop_if_true` option. "
 
 
